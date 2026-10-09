@@ -1,0 +1,2 @@
+pytest>=8.0.0
+pywebview>=6.2.1; sys_platform == "win32"

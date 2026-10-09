@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Viper Designer</title>
+    <link rel="stylesheet" href="designer.css" />
+  </head>
+  <body>
+    <div class="designer-shell">
+      <aside class="toolbox">
+        <h2>Components</h2>
+        <p class="property-help">Drag a component onto the board to add it.</p>
+        <div class="tool-item" data-kind="button">Button</div>
+        <div class="tool-item" data-kind="label">Label</div>
+        <div class="tool-item" data-kind="text_input">Text Input</div>
+        <div class="tool-item" data-kind="checkbox">Checkbox</div>
+        <div class="tool-item" data-kind="panel">Panel</div>
+      </aside>
+
+      <main class="canvas-panel">
+        <div class="canvas-toolbar">
+          <button class="tool-button" id="new-project">New Project</button>
+          <button class="tool-button" id="open-project">Open</button>
+          <button class="tool-button" id="save-project">Save</button>
+          <button class="tool-button" id="preview">Preview</button>
+          <button class="tool-button" id="run">Run</button>
+          <button class="tool-button" id="duplicate">Duplicate</button>
+          <button class="tool-button" id="delete">Delete</button>
+          <button class="tool-button" id="select-window">Window</button>
+          <button class="tool-button" id="connect-links" aria-pressed="false">Connect anchors</button>
+        </div>
+        <div id="design-viewport" class="design-viewport" title="Drag the board or window frame to pan. Scroll to zoom.">
+          <div id="window-stage" class="window-stage">
+            <section id="window-frame" class="window-frame selected" aria-label="Application window">
+              <div id="window-titlebar" class="window-titlebar" tabindex="0" role="button" aria-label="Select window properties">
+                <img id="window-icon-preview" alt=""><span id="window-title">MainWindow</span>
+                <span class="window-caption-controls" aria-hidden="true"><span>−</span><span id="window-maximize">□</span><span>×</span></span>
+              </div>
+              <div id="canvas" class="canvas" aria-label="Design canvas"></div>
+              <div id="container-anchors" aria-label="Window layout anchors"></div>
+              <span id="window-resize" class="window-resize" aria-label="Resize application window"></span>
+            </section>
+          </div>
+        </div>
+        <p id="status" role="status">Connecting to desktop host...</p>
+      </main>
+
+      <aside class="inspector">
+        <h2>Inspector</h2>
+        <div class="property-group" id="window-properties">
+          <h3>Window properties</h3>
+          <label>Name <input id="window-name" type="text"></label>
+          <label>Title <input id="window-caption" type="text"></label>
+          <label>Client width (px) <input id="window-width" type="number" min="200" max="7680"></label>
+          <label>Client height (px) <input id="window-height" type="number" min="100" max="4320"></label>
+          <label>Minimum width (px) <input id="window-min-width" type="number" min="100" max="7680"></label>
+          <label>Minimum height (px) <input id="window-min-height" type="number" min="60" max="4320"></label>
+          <label class="check-property"><input id="window-resizable" type="checkbox">Resizable</label>
+          <label class="check-property"><input id="window-decorated" type="checkbox">Show title bar and border</label>
+          <label>Initial state <select id="window-state"><option value="normal">Normal</option><option value="maximized">Maximized</option><option value="fullscreen">Fullscreen</option></select></label>
+          <label>Background <input id="window-background" type="color"></label>
+          <label>Window icon <input id="window-icon" type="file" accept="image/png,image/jpeg,image/x-icon,.ico"></label>
+          <button class="tool-button" id="clear-window-icon">Clear icon</button>
+          <p class="property-help">Click the title bar or empty canvas to select the window. The frame is a design guide; native decorations follow the operating system.</p>
+        </div>
+        <div class="property-group" id="component-properties" hidden>
+          <label>Name <input type="text" id="component-name" value="Button" /></label>
+          <label>Text <input type="text" id="component-text" value="Launch" /></label>
+          <label>X (px) <input type="number" id="component-x" step="any" /></label>
+          <label>Y (px) <input type="number" id="component-y" step="any" /></label>
+          <label>Width (px) <input type="number" id="component-width" min="1" step="any" /></label>
+          <label>Height (px) <input type="number" id="component-height" min="1" step="any" /></label>
+        </div>
+        <div id="link-properties" class="property-group">
+          <h3>Anchor link</h3>
+          <p class="property-help">Connect a reference anchor to a follower. Green anchors belong to the window. Click a line to select it.</p>
+          <p id="link-selection" class="property-help">Click a link to edit its distances</p>
+          <label>Constrain <select id="link-axis"><option value="both">X and Y</option><option value="x">X only</option><option value="y">Y only</option></select></label>
+          <label>X distance scalar <input id="link-distance_x" type="number" step="0.01"></label>
+          <label>Y distance scalar <input id="link-distance_y" type="number" step="0.01"></label>
+          <p class="property-help">0.1 means 10% of the window width or height. Negative values reverse the offset. Opposing anchors stretch an element between its links.</p>
+          <button id="delete-link" class="tool-button">Delete link</button>
+        </div>
+      </aside>
+    </div>
+
+    <script src="host.js"></script>
+    <script src="components.js"></script>
+    <script src="anchor-layout.js"></script>
+    <script src="relative-layout.js"></script>
+    <script src="link-editor.js"></script>
+    <script src="designer-components.js"></script>
+    <script src="designer.js"></script>
+  </body>
+</html>

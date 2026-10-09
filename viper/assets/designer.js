@@ -1,0 +1,298 @@
+const canvas = document.getElementById('canvas');
+
+let project, library, selectedId, preview = false;
+let queue = Promise.resolve();
+const status = document.getElementById('status');
+const fields = ['name', 'text', 'x', 'y', 'width', 'height'];
+const frame = document.getElementById('window-frame');
+const viewport = document.getElementById('design-viewport');
+let windowScale = 1;
+let zoom = 1;
+let stagePosition = null;
+let panGesture = null;
+let suppressBoardClick = false;
+const linkEditor = new ViperLinkEditor(canvas, document.getElementById('container-anchors'), {
+  changed() { render(); sync(); }, status(message) { status.textContent = message; }
+});
+const relativeLayout = new ViperRelativeLayout(canvas, () => {
+  if (linkEditor.project === project) linkEditor.draw();
+}, error => { status.textContent = error.message; });
+const windowFields = {name: 'name', caption: 'title', 'min-width': 'min_width',
+  'min-height': 'min_height', resizable: 'resizable', decorated: 'decorated',
+  state: 'state', background: 'background_color'};
+function renderWindow() {
+  const w = project.window;
+  canvas.style.width = `${project.canvas_width}px`;
+  canvas.style.height = `${project.canvas_height}px`;
+  canvas.style.backgroundColor = w.background_color;
+  const titlebar = document.getElementById('window-titlebar');
+  titlebar.hidden = !w.decorated || w.state === 'fullscreen';
+  document.getElementById('window-title').textContent = w.title;
+  const icon = document.getElementById('window-icon-preview');
+  icon.hidden = !w.icon; if (w.icon) icon.src = w.icon; else icon.removeAttribute('src');
+  document.getElementById('window-maximize').classList.toggle('unavailable', !w.resizable);
+  const width = project.canvas_width + 2, height = project.canvas_height + (titlebar.hidden ? 0 : 32) + 2;
+  const fitScale = Math.max(.05, Math.min(1, (viewport.clientWidth - 40) / width, (viewport.clientHeight - 40) / height));
+  windowScale = fitScale * zoom;
+  frame.style.width = `${width}px`; frame.style.transform = `scale(${windowScale})`;
+  const stage = document.getElementById('window-stage');
+  stage.style.width = `${width * windowScale}px`; stage.style.height = `${height * windowScale}px`;
+  if (!stagePosition) {
+    stagePosition = {x: (viewport.clientWidth - width * windowScale) / 2,
+      y: (viewport.clientHeight - height * windowScale) / 2};
+  }
+  stage.style.left = `${stagePosition.x}px`; stage.style.top = `${stagePosition.y}px`;
+  frame.classList.toggle('selected', !selectedId && !preview);
+  document.getElementById('window-resize').hidden = preview;
+}
+function selectWindow() { if (preview || !project) return; selectedId = null; render(); }
+document.getElementById('select-window').onclick = selectWindow;
+document.getElementById('window-titlebar').onclick = selectWindow;
+document.getElementById('window-titlebar').onkeydown = event => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectWindow(); }
+};
+canvas.addEventListener('click', event => { if (event.target === canvas) selectWindow(); });
+viewport.addEventListener('pointerdown', event => {
+  if (event.button !== 0 && event.button !== 1) return;
+  if (event.target.closest('.component-wrapper, .component, .container-anchor, .link-hit') || event.target.id === 'window-resize' || !stagePosition) return;
+  event.preventDefault();
+  panGesture = {pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+    originX: stagePosition.x, originY: stagePosition.y, moved: false};
+});
+document.addEventListener('pointermove', event => {
+  if (!panGesture || event.pointerId !== panGesture.pointerId) return;
+  const dx = event.clientX - panGesture.x, dy = event.clientY - panGesture.y;
+  if (Math.abs(dx) + Math.abs(dy) > 3) panGesture.moved = true;
+  if (!panGesture.moved) return;
+  stagePosition = {x: panGesture.originX + dx, y: panGesture.originY + dy};
+  const stage = document.getElementById('window-stage');
+  stage.style.left = `${stagePosition.x}px`; stage.style.top = `${stagePosition.y}px`;
+  viewport.classList.add('is-panning');
+});
+document.addEventListener('pointerup', event => {
+  if (!panGesture || event.pointerId !== panGesture.pointerId) return;
+  suppressBoardClick = panGesture.moved;
+  panGesture = null; viewport.classList.remove('is-panning');
+});
+viewport.addEventListener('click', event => {
+  if (!suppressBoardClick) return;
+  event.preventDefault(); event.stopPropagation(); suppressBoardClick = false;
+}, true);
+viewport.addEventListener('wheel', event => {
+  event.preventDefault();
+  const oldScale = windowScale;
+  const nextZoom = Math.max(.2, Math.min(5, zoom * Math.exp(-event.deltaY * .0015)));
+  if (nextZoom === zoom) return;
+  const rect = viewport.getBoundingClientRect();
+  const cursorX = event.clientX - rect.left, cursorY = event.clientY - rect.top;
+  const boardX = (cursorX - stagePosition.x) / oldScale;
+  const boardY = (cursorY - stagePosition.y) / oldScale;
+  zoom = nextZoom; renderWindow();
+  stagePosition = {x: cursorX - boardX * windowScale, y: cursorY - boardY * windowScale};
+  const stage = document.getElementById('window-stage');
+  stage.style.left = `${stagePosition.x}px`; stage.style.top = `${stagePosition.y}px`;
+}, {passive: false});
+const clone = value => JSON.parse(JSON.stringify(value));
+const id = () => `component_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+const selected = () => project.components.find(c => c.id === selectedId);
+function enqueue(action) {
+  queue = queue.then(action).catch(error => { status.textContent = error.message; });
+  return queue;
+}
+function sync() {
+  const snapshot = clone(project);
+  return enqueue(() => viperHost.request('update', {project: snapshot}));
+}
+function inspector() {
+  const component = selected();
+  document.getElementById('window-properties').hidden = !!component;
+  document.getElementById('component-properties').hidden = !component;
+  for (const [field, property] of Object.entries(windowFields)) {
+    const input = document.getElementById(`window-${field}`);
+    if (input.type === 'checkbox') input.checked = project.window[property];
+    else input.value = project.window[property];
+    input.disabled = preview;
+  }
+  for (const dimension of ['width', 'height']) {
+    const input = document.getElementById(`window-${dimension}`);
+    input.value = project[`canvas_${dimension}`]; input.disabled = preview;
+  }
+  document.getElementById('window-icon').disabled = preview;
+  document.getElementById('clear-window-icon').disabled = preview || !project.window.icon;
+  for (const field of fields) {
+    const input = document.getElementById(`component-${field}`);
+    input.disabled = !component || preview;
+    const rectangle = component && relativeLayout.rectangles.get(component.id);
+    input.value = component ? (rectangle && field in rectangle ? rectangle[field].toFixed(2) : component[field]) : '';
+  }
+}
+function render() {
+  renderWindow();
+  canvas.replaceChildren();
+  const nodes = new Map();
+  for (const component of project.components) {
+    const control = viperComponents.make(component, preview, payload => {
+      enqueue(() => viperHost.request('event', payload));
+    });
+    const el = preview ? control : viperDesignerComponents.wrap(control, component, canvas, {
+      scale: () => windowScale,
+      anchor: (body, edge) => linkEditor.anchor(body, edge),
+      rectangle: body => relativeLayout.rectangles.get(body),
+      move(body, bounds) { try { relativeLayout.move(body, bounds); } catch (error) { status.textContent = error.message; } },
+      sizeMode(body, mode) {
+        const component = project.components.find(c => c.id === body), previous = component.size_mode;
+        component.size_mode = mode;
+        try { ViperAnchorLayout.solve(project, canvas.clientWidth, canvas.clientHeight); }
+        catch (error) { component.size_mode = previous; status.textContent = error.message; return; }
+        render(); sync();
+      },
+      inspect: inspector,
+      select(componentId) {
+        selectedId = componentId; inspector(); frame.classList.remove('selected');
+        canvas.querySelectorAll('.component-wrapper').forEach(node =>
+          node.classList.toggle('selected', node.dataset.id === componentId));
+      },
+      changed() { render(); sync(); }
+    });
+    canvas.appendChild(el);
+    nodes.set(component.id, el);
+    el.classList.toggle('selected', !preview && component.id === selectedId);
+  }
+  relativeLayout.bind(project, nodes);
+  linkEditor.bind(project, relativeLayout, preview);
+  inspector();
+}
+function add(kind, x, y) {
+  if (preview || !library) return;
+  const component = clone(library[kind]);
+  component.id = id(); component.visible = true; component.enabled = true; component.event_handlers = {};
+  component.layout.min_width = 80; component.layout.min_height = 32;
+  if (x !== undefined) { component.layout.x = Math.min(x, 100 - component.layout.width);
+    component.layout.y = Math.min(y, 100 - component.layout.height); }
+  project.components.push(component); selectedId = component.id; render(); sync();
+}
+for (const item of document.querySelectorAll('.tool-item')) {
+  item.draggable = true;
+  item.addEventListener('dragstart', event => event.dataTransfer.setData('text/plain', item.dataset.kind));
+}
+canvas.addEventListener('dragover', event => { if (!preview) event.preventDefault(); });
+canvas.addEventListener('drop', event => {
+  event.preventDefault(); const kind = event.dataTransfer.getData('text/plain');
+  if (!library || !library[kind]) return;
+  const rect = canvas.getBoundingClientRect();
+  add(kind, (event.clientX - rect.left) * 100 / rect.width,
+    (event.clientY - rect.top) * 100 / rect.height);
+});
+for (const field of fields) document.getElementById(`component-${field}`).addEventListener('change', event => {
+  const component = selected(); if (!component || preview) return;
+  if (['x', 'y', 'width', 'height'].includes(field)) {
+    const value = Number(event.target.value);
+    if (!Number.isFinite(value)) return;
+    const rectangle = {...relativeLayout.rectangles.get(component.id)};
+    rectangle[field] = field === 'width' || field === 'height' ? Math.max(component.layout[`min_${field}`], value) : value;
+    try { relativeLayout.move(component.id, rectangle); }
+    catch (error) { status.textContent = error.message; return; }
+  } else component[field] = event.target.value;
+  render(); sync();
+});
+function remove() { if (preview || !selected()) return;
+  project.links = project.links.filter(l => l.a.body !== selectedId && l.b.body !== selectedId);
+  project.components = project.components.filter(c => c.id !== selectedId); selectedId = null; render(); sync(); }
+document.getElementById('delete').onclick = remove;
+document.getElementById('duplicate').onclick = () => {
+  if (preview || !selected()) return;
+  const copy = clone(selected()); copy.id = id(); copy.name += ' Copy';
+  project.components.push(copy); selectedId = copy.id; render(); sync();
+};
+document.addEventListener('keydown', event => {
+  if (event.key === 'Delete' && !['INPUT', 'TEXTAREA'].includes(event.target.tagName)) remove();
+});
+document.getElementById('new-project').onclick = () => {
+  if (!confirm('Replace the current project? Save your changes first.')) return;
+  enqueue(async () => { project = await viperHost.request('new'); selectedId = null; render(); status.textContent = 'New project'; });
+};
+document.getElementById('save-project').onclick = () => {
+  sync(); enqueue(async () => { const result = await viperHost.request('save');
+    status.textContent = result.cancelled ? 'Save cancelled' : 'Project saved'; });
+};
+document.getElementById('open-project').onclick = () => {
+  if (!confirm('Open another project? Save your changes first.')) return;
+  enqueue(async () => { const result = await viperHost.request('open');
+    if (result.project) { project = result.project; selectedId = null; render(); status.textContent = 'Project opened'; } });
+};
+document.getElementById('preview').onclick = () => {
+  preview = !preview; document.getElementById('preview').textContent = preview ? 'Edit' : 'Preview';
+  render(); status.textContent = preview ? 'Preview: interact with controls' : 'Design mode';
+};
+document.getElementById('run').onclick = () => {
+  sync(); enqueue(async () => { await viperHost.request('run'); status.textContent = 'Application process started'; });
+};
+new ResizeObserver(() => { if (project) renderWindow(); }).observe(viewport);
+
+for (const [field, property] of Object.entries(windowFields)) {
+  document.getElementById(`window-${field}`).addEventListener('change', event => {
+    if (preview) return;
+    const input = event.target;
+    let value = input.type === 'checkbox' ? input.checked : input.value;
+    if (property === 'min_width' || property === 'min_height') {
+      value = Math.max(property === 'min_width' ? 100 : 60, Math.min(property === 'min_width' ? 7680 : 4320, Number(value)));
+      if (!Number.isFinite(value)) return;
+      value = Math.round(value);
+    }
+    project.window[property] = value;
+    project.canvas_width = Math.max(project.canvas_width, project.window.min_width);
+    project.canvas_height = Math.max(project.canvas_height, project.window.min_height);
+    render(); sync();
+  });
+}
+for (const dimension of ['width', 'height']) {
+  document.getElementById(`window-${dimension}`).addEventListener('change', event => {
+    if (preview) return;
+    const value = Number(event.target.value); if (!Number.isFinite(value)) return;
+    project[`canvas_${dimension}`] = Math.round(Math.max(project.window[`min_${dimension}`], Math.min(dimension === 'width' ? 7680 : 4320, value)));
+    render(); sync();
+  });
+}
+document.getElementById('window-icon').addEventListener('change', async event => {
+  const file = event.target.files[0]; if (!file || preview) return;
+  const currentProject = project;
+  try {
+    if (file.size > 1024 * 1024) throw new Error('Choose an icon smaller than 1 MB.');
+    const image = new Image(); const url = URL.createObjectURL(file);
+    try {
+      image.src = url; await image.decode();
+      const bitmap = document.createElement('canvas'); bitmap.width = bitmap.height = 32;
+      const factor = Math.min(32 / image.width, 32 / image.height);
+      bitmap.getContext('2d').drawImage(image, (32 - image.width * factor) / 2,
+        (32 - image.height * factor) / 2, image.width * factor, image.height * factor);
+      if (project !== currentProject) return;
+      project.window.icon = bitmap.toDataURL('image/png'); render(); sync();
+      status.textContent = 'Window icon updated';
+    } finally { URL.revokeObjectURL(url); }
+  } catch (error) { status.textContent = `Cannot load icon: ${error.message}`; }
+  finally { event.target.value = ''; }
+});
+document.getElementById('clear-window-icon').onclick = () => {
+  if (preview) return; project.window.icon = ''; render(); sync();
+};
+document.getElementById('window-resize').addEventListener('pointerdown', event => {
+  if (preview || event.button !== 0) return;
+  event.preventDefault();
+  const handle = event.target, width = project.canvas_width, height = project.canvas_height;
+  const x = event.clientX, y = event.clientY, scale = windowScale;
+  handle.setPointerCapture(event.pointerId);
+  function move(e) {
+    project.canvas_width = Math.round(Math.max(project.window.min_width, Math.min(7680, width + (e.clientX - x) / scale)));
+    project.canvas_height = Math.round(Math.max(project.window.min_height, Math.min(4320, height + (e.clientY - y) / scale)));
+    render();
+  }
+  function end() {
+    handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', end);
+    handle.removeEventListener('pointercancel', end); sync();
+  }
+  handle.addEventListener('pointermove', move); handle.addEventListener('pointerup', end);
+  handle.addEventListener('pointercancel', end);
+});
+viperHost.request('bootstrap').then(data => {
+  project = data.project; library = data.library; render(); status.textContent = project.name;
+}).catch(error => { status.textContent = error.message; });
