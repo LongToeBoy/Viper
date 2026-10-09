@@ -56,6 +56,22 @@ def verify():
             assert abs(result['x'] - result['target']) < .01 and result['width'] == 80, result
             assert result['input'] == 'Edited' and result['menus'] == 0, result
         else:
+            menu_ready, menu_results = threading.Event(), []
+            host._window.evaluate_js((Path(__file__).parent / 'designer_menu_cases.js').read_text(encoding='utf-8'),
+                                     lambda value: (menu_results.append(value), menu_ready.set()))
+            assert menu_ready.wait(20), 'Menu checks did not finish'
+            assert menu_results[0].get('passed', 0) == 50 and 'error' not in menu_results[0], menu_results
+            for width, height in [(560, 430), (240, 260), (1280, 820)]:
+                host.resize(width, height)
+                threading.Event().wait(.2)
+                shell = host._window.evaluate_js("""(() => {
+                  const chrome = menus.chrome.getBoundingClientRect(), workspace = document.getElementById('workspace').getBoundingClientRect();
+                  return {top: chrome.top, height: chrome.height, workspaceTop: workspace.top,
+                    right: menus.buttons[5].getBoundingClientRect().right, width: innerWidth,
+                    pageHeight: document.documentElement.scrollHeight, heightAvailable: innerHeight};
+                })()""")
+                assert shell['top'] == 0 and shell['height'] == 68 and shell['workspaceTop'] == 68, shell
+                assert shell['right'] <= shell['width'] and shell['pageHeight'] <= shell['heightAvailable'], shell
             assert host._window.evaluate_js("document.querySelectorAll('.component-size-menu').length") == 4
             result = host._window.evaluate_js("""(() => {
               const c = project.components[0]; selectedId = c.id; render();
@@ -70,10 +86,10 @@ def verify():
               wrapper.dispatchEvent(new PointerEvent('pointerup', {pointerId: 17, bubbles: true}));
               const after = relativeLayout.rectangles.get(c.id);
               const resized = after.width > before.width && after.height > before.height;
-              document.getElementById('connect-links').click();
+              actions.execute('connect-links');
               document.querySelector('#container-anchors [data-anchor=left]').click();
               canvas.querySelector('.component-wrapper.selected [data-anchor=left]').click();
-              document.getElementById('connect-links').click();
+              actions.execute('connect-links');
               // Clear selection and use the visible line's actual click target.
               linkEditor.selected = null; linkEditor.inspect(); linkEditor.draw();
               const link = project.links[0], a = relativeLayout.anchor(link.a), b = relativeLayout.anchor(link.b);
@@ -107,7 +123,8 @@ def verify():
             assert 'springs' not in values[-1]['project']
             host._window.evaluate_js("project = JSON.parse(JSON.stringify(project)); render()")
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
-                          'anchor_cases': cases['passed'], 'checks': 'passed'}))
+                          'anchor_cases': cases['passed'], 'menu_checks': 0 if runtime_mode else menu_results[0]['passed'],
+                          'checks': 'passed'}))
     except Exception as exc:
         import traceback
         traceback.print_exc(); errors.append(exc)

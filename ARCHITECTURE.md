@@ -131,3 +131,47 @@ Twenty-one Python tests cover model validation, migration and existing behavior.
 Linux remains untested. Nested container coordinate systems and automatic
 intrinsic-content sizing remain future work. Infeasible constraints report an
 error and preserve the last valid displayed layout until corrected.
+
+## Permanent designer application chrome (2026-10-09)
+
+The IDE root is `application-shell`: a CSS grid with a reserved 68-pixel chrome
+row (30-pixel menu bar and 38-pixel compact toolbar) and a flexible workspace row.
+The workspace owns its scroll containers, clips its contents and establishes an
+isolated stacking context below the chrome. Designer transforms, canvas controls,
+drag gestures and future panels belong inside this workspace. Dropdowns live in
+the chrome's popup layer and are bounded below the chrome and within the client
+viewport. Native title bars, decorations and host adapters are unchanged.
+
+`assets/actions.js` owns unique command IDs, names, icons, shortcuts, callbacks,
+and enabled/checked state. State may be derived from the current project,
+selection and Preview mode. `assets/menus.js` renders nested menus and toolbar
+buttons from action references, shares their state and handles navigation,
+outside clicks, Escape and popup placement. `assets/designer-chrome.js` composes
+File, Edit, Insert, Layout, View and Run menus, the compact toolbar, context
+commands, palette clicks and shortcuts around existing designer commands.
+Add future commands to this registry and reference their IDs in menu definitions;
+do not create separate command implementations for each UI surface.
+
+`assets/designer-preferences.js` stores editor preferences under
+`viper.designer.preferences.v1` in local storage, with a session fallback when
+storage is unavailable. Show Grid, Snap to Grid and Snap to Elements are separate
+booleans; snapping defaults off to preserve existing gestures. Snapping changes
+intentional element movement before passing the rectangle to the existing shared
+layout renderer; it does not alter the headless solver or corner-resize behavior.
+Grid spacing, anchor visibility and inspector visibility are also editor
+preferences, independent of saved application definitions and runtime styles.
+
+Save As reuses Save's existing native destination dialog. Stop exits embedded
+Preview; there is no child-process stop API. Undo/redo, element clipboard,
+multi-selection/alignment/distribution, additional project windows, hierarchy,
+recent projects and packaging remain disabled placeholders. Python handlers and
+event mappings are preserved by the existing duplication and serialization code.
+The chrome initializes before bootstrap and remains usable without a project.
+
+Verification: 21 Python tests pass, plus WebView2 designer/runtime smoke tests
+with ten headless solver cases and 50 menu/action assertions. Native checks cover
+shared command dispatch, selection/Preview state, input shortcut protection,
+nested keyboard navigation, context duplication, independent persistent toggles,
+snapping, no-project menus, stacking isolation, and resizing through 240-, 560-
+and 1280-pixel outer window widths. Linux GTK/WebKit native verification remains
+outstanding.

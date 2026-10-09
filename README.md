@@ -49,6 +49,30 @@ and Delete act on selection. Save/Open use native JSON file dialogs. Preview
 uses the same real controls as Run; Run opens a separate native runtime process.
 Save before replacing a project with New or Open.
 
+The permanent **File**, **Edit**, **Insert**, **Layout**, **View** and **Run** menus
+sit above the workspace, with a compact Save, Undo/Redo, snapping, Preview and Run
+toolbar. Insert's Widgets and Controls submenu uses the same creation commands
+as the palette. Right-click an element for Duplicate, Delete, Align, Connect
+Anchors and Properties. Unsupported features, including Undo/Redo, clipboard,
+multi-selection alignment, hierarchy, additional windows and packaging, appear
+disabled. Save As uses the existing native save destination dialog. Stop Preview
+returns to editing; separately launched applications use their native close button.
+
+Use F10 or Alt plus a menu's first letter to focus/open the menus, arrow keys to
+navigate submenus, Enter to activate, and Escape to close. Ctrl+S saves, Ctrl+O
+opens, Ctrl+N creates a project, Ctrl+D duplicates and Delete removes the selected
+element. F6 toggles Preview, F5 runs, and Shift+F5 stops Preview. Text fields retain
+their normal editing shortcuts. View's Zoom menu also provides Ctrl+=, Ctrl+-
+and Ctrl+0 for zoom in, out and reset/fit.
+
+**Show Grid**, **Snap to Grid** and **Snap to Elements** are independent editor
+preferences. Their current states are shown in the menus and toolbar and persist
+across sessions when local storage is available. Snapping defaults off and applies
+when moving elements; enabling both prefers nearby element edges/centers over the
+grid. Layout's Grid Settings adjusts spacing in client pixels. View also controls
+anchor visibility and the Properties Panel. These preferences do not change saved
+application definitions or runtime styling.
+
 ## Relative anchor layout
 
 Click **Connect anchors**, then the reference anchor followed by the anchor on
@@ -84,7 +108,7 @@ nested container coordinate systems remain future work. Windows has native check
 Linux/WebKit remains untested.
 
 The canvas sits inside a selectable application-window frame. Click its title
-bar, empty canvas, or the Window toolbar button to edit the window name, title,
+bar, empty canvas, or View > Window Properties to edit the window name, title,
 client dimensions, minimum size, icon, background, resize behavior, decorations
 and initial state. Drag the outer lower-right handle to resize the design surface.
 Drag the board or window frame to pan around the workspace, and scroll to zoom
@@ -132,7 +156,9 @@ python tests/windows_smoke.py --runtime
 ```
 
 Twenty-one automated Python tests passed, plus ten deterministic hard-layout
-checks in WebView2 and native designer/runtime anchor integration checks.
+checks in WebView2, 50 menu/action assertions, and native designer/runtime anchor
+integration checks. Shell resizing and stacking isolation are checked at narrow
+and full-size window dimensions.
 Windows WebView2 startup, the bridge, real-control
 rendering, add/duplicate/delete, Preview, standalone runtime resizing and shutdown
 have been exercised. Linux is implemented but has not been tested on Linux.

@@ -7,7 +7,20 @@
     <link rel="stylesheet" href="designer.css" />
   </head>
   <body>
-    <div class="designer-shell">
+    <div class="application-shell">
+      <header id="application-chrome" class="application-chrome" aria-label="Application commands">
+        <nav class="menu-bar" role="menubar" aria-label="Main menu"></nav>
+        <div class="compact-toolbar" role="toolbar" aria-label="Frequently used commands"></div>
+        <div class="menu-layer"></div>
+        <section id="grid-settings" class="grid-settings" role="dialog" aria-label="Grid settings" hidden>
+          <h3>Grid settings</h3>
+          <label>Spacing (client pixels) <input id="grid-size" type="number" min="2" max="128" step="1" required></label>
+          <p class="property-help">Grid visibility and the two snapping options are independent. Snapping applies when moving elements.</p>
+          <button id="apply-grid-settings" class="tool-button">Apply</button>
+          <button id="close-grid-settings" class="tool-button">Close</button>
+        </section>
+      </header>
+      <div id="workspace" class="designer-shell">
       <aside class="toolbox">
         <h2>Components</h2>
         <p class="property-help">Drag a component onto the board to add it.</p>
@@ -19,17 +32,6 @@
       </aside>
 
       <main class="canvas-panel">
-        <div class="canvas-toolbar">
-          <button class="tool-button" id="new-project">New Project</button>
-          <button class="tool-button" id="open-project">Open</button>
-          <button class="tool-button" id="save-project">Save</button>
-          <button class="tool-button" id="preview">Preview</button>
-          <button class="tool-button" id="run">Run</button>
-          <button class="tool-button" id="duplicate">Duplicate</button>
-          <button class="tool-button" id="delete">Delete</button>
-          <button class="tool-button" id="select-window">Window</button>
-          <button class="tool-button" id="connect-links" aria-pressed="false">Connect anchors</button>
-        </div>
         <div id="design-viewport" class="design-viewport" title="Drag the board or window frame to pan. Scroll to zoom.">
           <div id="window-stage" class="window-stage">
             <section id="window-frame" class="window-frame selected" aria-label="Application window">
@@ -83,6 +85,7 @@
           <button id="delete-link" class="tool-button">Delete link</button>
         </div>
       </aside>
+      </div>
     </div>
 
     <script src="host.js"></script>
@@ -91,6 +94,10 @@
     <script src="relative-layout.js"></script>
     <script src="link-editor.js"></script>
     <script src="designer-components.js"></script>
+    <script src="actions.js"></script>
+    <script src="menus.js"></script>
+    <script src="designer-preferences.js"></script>
+    <script src="designer-chrome.js"></script>
     <script src="designer.js"></script>
   </body>
 </html>

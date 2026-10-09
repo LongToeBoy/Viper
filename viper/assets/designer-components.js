@@ -60,7 +60,7 @@ window.viperDesignerComponents = {
           component.layout.min_width, component.layout.min_height) : {
           ...origin, x: Math.max(0, Math.min(width - origin.width, origin.x + dx)),
           y: Math.max(0, Math.min(height - origin.height, origin.y + dy))};
-        callbacks.move(component.id, bounds);
+        callbacks.move(component.id, bounds, edge);
         callbacks.inspect();
       }
       function end(e) {

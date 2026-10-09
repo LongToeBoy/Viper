@@ -3,6 +3,11 @@ const canvas = document.getElementById('canvas');
 let project, library, selectedId, preview = false;
 let queue = Promise.resolve();
 const status = document.getElementById('status');
+const actions = new ViperActionRegistry(error => { status.textContent = error.message; });
+let preferenceStorage;
+try { preferenceStorage = window.localStorage; } catch (_) { /* Session preferences still work. */ }
+const preferences = new ViperDesignerPreferences(preferenceStorage);
+const workspace = document.getElementById('workspace');
 const fields = ['name', 'text', 'x', 'y', 'width', 'height'];
 const frame = document.getElementById('window-frame');
 const viewport = document.getElementById('design-viewport');
@@ -12,7 +17,8 @@ let stagePosition = null;
 let panGesture = null;
 let suppressBoardClick = false;
 const linkEditor = new ViperLinkEditor(canvas, document.getElementById('container-anchors'), {
-  changed() { render(); sync(); }, status(message) { status.textContent = message; }
+  changed() { render(); sync(); }, status(message) { status.textContent = message; },
+  modeChanged() { actions.refresh(); }
 });
 const relativeLayout = new ViperRelativeLayout(canvas, () => {
   if (linkEditor.project === project) linkEditor.draw();
@@ -21,6 +27,7 @@ const windowFields = {name: 'name', caption: 'title', 'min-width': 'min_width',
   'min-height': 'min_height', resizable: 'resizable', decorated: 'decorated',
   state: 'state', background: 'background_color'};
 function renderWindow() {
+  if (!project) return;
   const w = project.window;
   canvas.style.width = `${project.canvas_width}px`;
   canvas.style.height = `${project.canvas_height}px`;
@@ -46,7 +53,6 @@ function renderWindow() {
   document.getElementById('window-resize').hidden = preview;
 }
 function selectWindow() { if (preview || !project) return; selectedId = null; render(); }
-document.getElementById('select-window').onclick = selectWindow;
 document.getElementById('window-titlebar').onclick = selectWindow;
 document.getElementById('window-titlebar').onkeydown = event => {
   if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectWindow(); }
@@ -80,6 +86,7 @@ viewport.addEventListener('click', event => {
 }, true);
 viewport.addEventListener('wheel', event => {
   event.preventDefault();
+  if (!project || !stagePosition) return;
   const oldScale = windowScale;
   const nextZoom = Math.max(.2, Math.min(5, zoom * Math.exp(-event.deltaY * .0015)));
   if (nextZoom === zoom) return;
@@ -94,7 +101,7 @@ viewport.addEventListener('wheel', event => {
 }, {passive: false});
 const clone = value => JSON.parse(JSON.stringify(value));
 const id = () => `component_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-const selected = () => project.components.find(c => c.id === selectedId);
+const selected = () => project?.components.find(c => c.id === selectedId);
 function enqueue(action) {
   queue = queue.then(action).catch(error => { status.textContent = error.message; });
   return queue;
@@ -104,6 +111,7 @@ function sync() {
   return enqueue(() => viperHost.request('update', {project: snapshot}));
 }
 function inspector() {
+  if (!project) return;
   const component = selected();
   document.getElementById('window-properties').hidden = !!component;
   document.getElementById('component-properties').hidden = !component;
@@ -127,6 +135,8 @@ function inspector() {
   }
 }
 function render() {
+  workspace.classList.toggle('workspace-empty', !project);
+  if (!project) { canvas.replaceChildren(); actions.refresh(); return; }
   renderWindow();
   canvas.replaceChildren();
   const nodes = new Map();
@@ -138,7 +148,10 @@ function render() {
       scale: () => windowScale,
       anchor: (body, edge) => linkEditor.anchor(body, edge),
       rectangle: body => relativeLayout.rectangles.get(body),
-      move(body, bounds) { try { relativeLayout.move(body, bounds); } catch (error) { status.textContent = error.message; } },
+      move(body, bounds, edge) {
+        if (!edge) bounds = preferences.snap(body, bounds, relativeLayout.rectangles, canvas.clientWidth, canvas.clientHeight, windowScale);
+        try { relativeLayout.move(body, bounds); } catch (error) { status.textContent = error.message; }
+      },
       sizeMode(body, mode) {
         const component = project.components.find(c => c.id === body), previous = component.size_mode;
         component.size_mode = mode;
@@ -147,11 +160,7 @@ function render() {
         render(); sync();
       },
       inspect: inspector,
-      select(componentId) {
-        selectedId = componentId; inspector(); frame.classList.remove('selected');
-        canvas.querySelectorAll('.component-wrapper').forEach(node =>
-          node.classList.toggle('selected', node.dataset.id === componentId));
-      },
+      select: selectComponent,
       changed() { render(); sync(); }
     });
     canvas.appendChild(el);
@@ -161,9 +170,16 @@ function render() {
   relativeLayout.bind(project, nodes);
   linkEditor.bind(project, relativeLayout, preview);
   inspector();
+  actions.refresh();
+}
+function selectComponent(componentId) {
+  selectedId = componentId; inspector(); frame.classList.remove('selected');
+  canvas.querySelectorAll('.component-wrapper').forEach(node =>
+    node.classList.toggle('selected', node.dataset.id === componentId));
+  actions.refresh();
 }
 function add(kind, x, y) {
-  if (preview || !library) return;
+  if (preview || !project || !library?.[kind]) return;
   const component = clone(library[kind]);
   component.id = id(); component.visible = true; component.enabled = true; component.event_handlers = {};
   component.layout.min_width = 80; component.layout.min_height = 32;
@@ -198,35 +214,74 @@ for (const field of fields) document.getElementById(`component-${field}`).addEve
 function remove() { if (preview || !selected()) return;
   project.links = project.links.filter(l => l.a.body !== selectedId && l.b.body !== selectedId);
   project.components = project.components.filter(c => c.id !== selectedId); selectedId = null; render(); sync(); }
-document.getElementById('delete').onclick = remove;
-document.getElementById('duplicate').onclick = () => {
+function duplicate() {
   if (preview || !selected()) return;
   const copy = clone(selected()); copy.id = id(); copy.name += ' Copy';
   project.components.push(copy); selectedId = copy.id; render(); sync();
-};
-document.addEventListener('keydown', event => {
-  if (event.key === 'Delete' && !['INPUT', 'TEXTAREA'].includes(event.target.tagName)) remove();
-});
-document.getElementById('new-project').onclick = () => {
-  if (!confirm('Replace the current project? Save your changes first.')) return;
-  enqueue(async () => { project = await viperHost.request('new'); selectedId = null; render(); status.textContent = 'New project'; });
-};
-document.getElementById('save-project').onclick = () => {
-  sync(); enqueue(async () => { const result = await viperHost.request('save');
+}
+function replaceProject(next) {
+  project = next; selectedId = null; preview = false; stagePosition = null; zoom = 1;
+  linkEditor.setConnecting(false); render();
+}
+function newProject() {
+  if (project && !confirm('Replace the current project? Save your changes first.')) return;
+  return enqueue(async () => { replaceProject(await viperHost.request('new')); status.textContent = 'New project'; });
+}
+function saveProject() {
+  sync(); return enqueue(async () => { const result = await viperHost.request('save');
     status.textContent = result.cancelled ? 'Save cancelled' : 'Project saved'; });
-};
-document.getElementById('open-project').onclick = () => {
-  if (!confirm('Open another project? Save your changes first.')) return;
-  enqueue(async () => { const result = await viperHost.request('open');
-    if (result.project) { project = result.project; selectedId = null; render(); status.textContent = 'Project opened'; } });
-};
-document.getElementById('preview').onclick = () => {
-  preview = !preview; document.getElementById('preview').textContent = preview ? 'Edit' : 'Preview';
+}
+function openProject() {
+  if (project && !confirm('Open another project? Save your changes first.')) return;
+  return enqueue(async () => { const result = await viperHost.request('open');
+    if (result.project) { replaceProject(result.project); status.textContent = 'Project opened'; } });
+}
+function togglePreview() {
+  preview = !preview;
+  if (preview) linkEditor.setConnecting(false);
   render(); status.textContent = preview ? 'Preview: interact with controls' : 'Design mode';
+}
+function runProject() {
+  sync(); return enqueue(async () => { await viperHost.request('run'); status.textContent = 'Application process started'; });
+}
+function applyPreferences() {
+  const values = preferences.values;
+  workspace.classList.toggle('grid-hidden', !values.showGrid);
+  workspace.classList.toggle('anchors-hidden', !values.showAnchors);
+  workspace.classList.toggle('properties-hidden', !values.properties);
+  canvas.style.backgroundSize = `${values.gridSize}px ${values.gridSize}px`;
+  viewport.style.backgroundSize = `${values.gridSize * 2}px ${values.gridSize * 2}px`;
+  actions.refresh();
+}
+function showProperties() {
+  preferences.set('properties', true); applyPreferences();
+  document.getElementById(selected() ? 'component-name' : 'window-name').focus();
+}
+const gridSettings = document.getElementById('grid-settings');
+function closeGridSettings() { gridSettings.hidden = true; }
+const menus = createViperDesignerChrome(actions, {
+  canvas, newProject, openProject, saveProject, duplicate, remove, add, select: selectComponent,
+  preview: togglePreview, run: runProject, preferencesChanged: applyPreferences,
+  windowProperties() { selectWindow(); showProperties(); }, properties: showProperties,
+  connect() {
+    if (!linkEditor.connecting) { preferences.set('showAnchors', true); applyPreferences(); }
+    linkEditor.setConnecting(!linkEditor.connecting);
+  },
+  gridSettings() { gridSettings.hidden = false; document.getElementById('grid-size').value = preferences.values.gridSize;
+    document.getElementById('grid-size').focus(); },
+  zoom(factor) { zoom = factor === null ? 1 : Math.max(.2, Math.min(5, zoom * factor)); stagePosition = null; renderWindow(); },
+  escape() { closeGridSettings(); linkEditor.setConnecting(false); }
+}, {
+  hasProject: () => !!project, hasSelection: () => !!selected(), hasWidget: kind => !!library?.[kind],
+  preview: () => preview, connecting: () => linkEditor.connecting
+}, preferences);
+document.getElementById('close-grid-settings').onclick = closeGridSettings;
+document.getElementById('apply-grid-settings').onclick = () => {
+  const input = document.getElementById('grid-size');
+  if (!input.reportValidity()) return;
+  preferences.set('gridSize', Number(input.value)); applyPreferences(); closeGridSettings();
 };
-document.getElementById('run').onclick = () => {
-  sync(); enqueue(async () => { await viperHost.request('run'); status.textContent = 'Application process started'; });
-};
+applyPreferences(); render();
 new ResizeObserver(() => { if (project) renderWindow(); }).observe(viewport);
 
 for (const [field, property] of Object.entries(windowFields)) {

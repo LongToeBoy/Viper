@@ -11,13 +11,6 @@ class ViperLinkEditor {
       button.onclick = event => { event.stopPropagation(); this.anchor('$window', edge); };
       anchors.appendChild(button);
     }
-    document.getElementById('connect-links').onclick = () => {
-      this.connecting = !this.connecting; this.pending = null; this.mode();
-      this.callbacks.status(this.connecting ? 'Click a reference anchor, then the element that should follow it' : 'Design mode');
-    };
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') {
-      this.pending = null; this.connecting = false; this.mode();
-    }});
     for (const key of ['axis', 'distance_x', 'distance_y']) {
       document.getElementById(`link-${key}`).onchange = event => {
         const link = this.project.links.find(l => l.id === this.selected); if (!link || this.preview) return;
@@ -35,15 +28,18 @@ class ViperLinkEditor {
       this.selected = null; this.callbacks.changed();
     };
   }
+  setConnecting(value) {
+    this.connecting = !!value && !this.preview && !!this.project; this.pending = null; this.mode();
+    this.callbacks.status(this.connecting ? 'Click a reference anchor, then the element that should follow it' : 'Design mode');
+  }
   mode() {
     this.canvas.classList.toggle('connecting-links', this.connecting && !this.preview);
-    const button = document.getElementById('connect-links');
-    button.disabled = this.preview; button.setAttribute('aria-pressed', String(this.connecting));
     this.anchors.hidden = this.preview;
     for (const anchor of [...this.canvas.querySelectorAll('.position-anchor'), ...this.anchors.children]) {
       const body = anchor.closest('.component-wrapper')?.dataset.id || '$window';
       anchor.classList.toggle('anchor-pending', !!this.pending && this.pending.body === body && this.pending.edge === anchor.dataset.anchor);
     }
+    this.callbacks.modeChanged?.();
   }
   bind(project, layout, preview) {
     if (this.project !== project) { this.pending = null; this.selected = null; }

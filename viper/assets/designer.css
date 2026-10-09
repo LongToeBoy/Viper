@@ -23,8 +23,8 @@ body {
 
 .designer-shell {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 260px;
-  height: 100vh;
+  grid-template-columns: var(--palette-width) minmax(0, 1fr) var(--inspector-width);
+  height: 100%;
   gap: 0;
   padding: 0;
 }
@@ -96,15 +96,6 @@ body {
 .property-help { font-size: 12px; color: var(--muted); line-height: 1.5; }
 .property-group h3 { margin: 0; font-size: 14px; }
 select { padding: 8px; background: var(--panel-alt); color: var(--text); border: 1px solid var(--line); border-radius: 8px; }
-
-.canvas-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(16, 24, 39, 0.9);
-}
 
 .tool-button {
   background: var(--panel-alt);
@@ -199,4 +190,77 @@ input {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 10px;
+}
+
+/* Permanent chrome reserves space; every editor lives in the clipped workspace.
+   Workspace descendants cannot escape its stacking context, even with high z-index. */
+.application-shell {
+  --palette-width: clamp(100px, 18vw, 220px);
+  --inspector-width: clamp(150px, 22vw, 260px);
+  display: grid; grid-template-rows: 68px minmax(0, 1fr);
+  height: 100vh; overflow: hidden; isolation: isolate;
+}
+.application-chrome {
+  position: relative; z-index: 100; isolation: isolate;
+  display: grid; grid-template-rows: 30px 38px;
+  background: #141d32; border-bottom: 1px solid var(--line);
+}
+.designer-shell { position: relative; z-index: 0; isolation: isolate; overflow: hidden; min-height: 0; min-width: 0; }
+.canvas-panel, .toolbox, .inspector { min-width: 0; }
+.toolbox, .inspector { overscroll-behavior: contain; }
+.inspector input, .inspector select { width: 100%; min-width: 0; }
+.inspector input[type="checkbox"] { width: auto; }
+.properties-hidden { grid-template-columns: var(--palette-width) minmax(0, 1fr); }
+.properties-hidden .inspector { display: none; }
+.workspace-empty .window-stage { display: none; }
+.workspace-empty .toolbox, .workspace-empty .inspector { visibility: hidden; }
+.menu-bar { display: flex; align-items: stretch; min-width: 0; border-bottom: 1px solid var(--line); padding: 0 5px; }
+.menu-heading { background: transparent; color: var(--text); border: 0; padding: 0 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.menu-heading:hover, .menu-heading[aria-expanded="true"] { background: var(--panel-alt); }
+.compact-toolbar { display: flex; align-items: center; gap: 3px; padding: 3px 8px; overflow-x: auto; overflow-y: hidden; min-width: 0; }
+.toolbar-action { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  gap: 5px; height: 28px; min-width: 30px; border: 1px solid transparent; border-radius: 4px;
+  padding: 0 7px; background: transparent; color: var(--text); cursor: pointer; }
+.toolbar-action .action-name, .toolbar-action .action-shortcut { display: none; }
+.toolbar-action#preview .action-name, .toolbar-action#run .action-name { display: inline; font-size: 12px; }
+.toolbar-action:hover { background: var(--panel-alt); border-color: var(--line); }
+.toolbar-action.checked { background: #254571; border-color: var(--accent); color: white; }
+.toolbar-separator { flex: 0 0 1px; height: 18px; margin: 0 5px; background: var(--line); }
+.action-icon { display: inline-block; min-width: 18px; text-align: center; }
+button:disabled { opacity: .42; cursor: default; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.menu-layer { position: relative; z-index: 3; pointer-events: none; }
+.menu-popup { position: fixed; pointer-events: auto; overflow: auto; overscroll-behavior: contain;
+  width: 270px; padding: 5px; border: 1px solid var(--line); border-radius: 6px;
+  background: #18243a; box-shadow: 0 8px 24px #0007; z-index: 1; }
+.menu-item { display: flex; width: 100%; align-items: center; gap: 7px; min-height: 29px;
+  padding: 5px 7px; border: 0; border-radius: 3px; background: transparent; color: var(--text);
+  font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.menu-item:not(:disabled):hover, .menu-item:focus { background: #2b466b; }
+.menu-item .action-name { flex: 1; }
+.action-shortcut { margin-left: auto; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.submenu-heading { padding-left: 32px; }
+.submenu-heading::after { content: '›'; margin-left: auto; }
+.menu-separator { height: 1px; margin: 5px 2px; background: var(--line); }
+.grid-settings { position: fixed; top: 72px; right: 12px; z-index: 2; padding: 16px;
+  width: min(300px, calc(100vw - 24px)); max-height: calc(100vh - 80px); overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 24px #0007; }
+.grid-settings[hidden] { display: none; }
+.grid-settings h3 { margin: 0 0 12px; font-size: 14px; }
+.grid-hidden .design-viewport, .grid-hidden .window-frame .canvas { background-image: none; }
+#workspace.anchors-hidden .position-anchor, #workspace.anchors-hidden .link-overlay { display: none; }
+@media (max-width: 640px) {
+  .application-shell { --palette-width: 80px; --inspector-width: 110px; }
+  .toolbox, .inspector { padding: 12px 6px; }
+  .toolbox h2, .inspector h2 { font-size: 11px; letter-spacing: 0; }
+  .tool-item { padding: 8px 4px; font-size: 12px; }
+  .menu-heading { padding: 0 8px; }
+}
+@media (max-width: 360px) {
+  .menu-bar { padding: 0 2px; }
+  .menu-heading { flex: 1; padding: 0 3px; font-size: 11px; }
+  .compact-toolbar { gap: 0; padding: 3px 2px; }
+  .toolbar-separator { margin: 0 2px; }
+  .toolbar-action { min-width: 24px; padding: 0 3px; }
+  .toolbar-action#preview .action-name, .toolbar-action#run .action-name { display: none; }
 }
