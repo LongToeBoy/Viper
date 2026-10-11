@@ -1,6 +1,7 @@
 /* Run inside the real designer WebView; restore project and editor preferences. */
 (async () => {
   const originalProject = clone(project), originalPreferences = {...preferences.values};
+  const originalWorkspace = panels.snapshot();
   const originalRequest = viperHost.request, originalConfirm = window.confirm;
   let checks = 0;
   const assert = (condition, message) => { if (!condition) throw new Error(message); checks++; };
@@ -9,7 +10,8 @@
     target.dispatchEvent(event); return event;
   };
   try {
-    assert(menus.buttons.map(b => b.textContent).join(',') === 'File,Edit,Insert,Layout,View,Run', 'Six main menus');
+    panels.reset();
+    assert(menus.buttons.map(b => b.textContent).join(',') === 'File,Edit,Insert,Layout,View,Run,Windows', 'Seven main menus');
     assert(document.querySelectorAll('.compact-toolbar [data-action]').length === 7, 'Seven frequent tools');
     const isolated = new ViperActionRegistry(); let called = 0;
     isolated.register({id: 'disabled', name: 'Disabled', enabled: false, callback: () => called++});
@@ -19,8 +21,8 @@
     assert(duplicateRejected, 'Action IDs are unique');
     selectedId = null; render();
     assert(!actions.state('duplicate').enabled && !actions.state('delete').enabled, 'Selection controls enabled state');
-    assert(!actions.state('undo').enabled && !actions.state('align-left').enabled && !actions.state('new-window').enabled,
-      'Unsupported commands remain disabled');
+    assert(!actions.state('undo').enabled && !actions.state('align-left').enabled && actions.state('new-window').enabled,
+      'Unsupported commands remain disabled and new windows are available');
 
     menus.buttons[2].click();
     const submenu = menus.popups[0].node.querySelector('.submenu-heading');
@@ -160,6 +162,7 @@
   finally {
     viperHost.request = originalRequest; window.confirm = originalConfirm;
     for (const [name, value] of Object.entries(originalPreferences)) preferences.set(name, value);
+    panels.restore(originalWorkspace);
     menus.close(false); applyPreferences(); replaceProject(originalProject); await sync();
   }
 })()

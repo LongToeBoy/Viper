@@ -8,17 +8,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from viper.app import ViperApp
 from viper.hosts.windows import WindowsHost
 from viper.runtime import Runtime
+from viper.models import WindowDefinition
 from test_window import icon_data
 
 app, host, errors = ViperApp(), WindowsHost(), []
 runtime_mode = '--runtime' in sys.argv
+runtime_form = app.project
+if runtime_mode and '--secondary' in sys.argv:
+    runtime_form = WindowDefinition.from_dict({**app.project.to_dict(), 'form_id': 'secondary'})
+    app.project.windows.append(runtime_form)
 if runtime_mode:
-    app.project.window.title = 'Form1'
-    app.project.window.icon = icon_data()
-    app.project.window.resizable = False
-    component = app.project.components[0]
+    runtime_form.window.title = 'Form1'
+    runtime_form.window.icon = icon_data()
+    runtime_form.window.resizable = False
+    component = runtime_form.components[0]
+    component.event_handlers['click'] = 'runtime_click'
+    app.project.event_code['runtime_click'] = 'def runtime_click(event):\n    return "native:" + event["window_id"]\n'
     component.box = {'x': 100, 'y': 100, 'width': 80, 'height': 32, 'reference_width': 960, 'reference_height': 640}
-    app.project.links = [{'id': 'runtime-link', 'a': {'body': '$window', 'edge': 'right'},
+    runtime_form.links = [{'id': 'runtime-link', 'a': {'body': '$window', 'edge': 'right'},
         'b': {'body': component.id, 'edge': 'right'}, 'axis': 'both', 'distance_x': -.1, 'distance_y': -.2}]
 
 
@@ -55,19 +62,37 @@ def verify():
             })()""")
             assert abs(result['x'] - result['target']) < .01 and result['width'] == 80, result
             assert result['input'] == 'Edited' and result['menus'] == 0, result
+            event_ready, event_results = threading.Event(), []
+            host._window.evaluate_js("""viperHost.request('event', {window_id: project.form_id,
+                component_id: project.components[0].id, event: 'click', value: 'native'})""",
+                lambda value: (event_results.append(value), event_ready.set()))
+            assert event_ready.wait(15) and event_results[0] == {'handled': True, 'value': 'native:' + runtime_form.form_id}, event_results
+            # The reply resolves before pywebview's API call acknowledgement;
+            # let that acknowledgement drain before disposing its WebView.
+            threading.Event().wait(.1)
         else:
             menu_ready, menu_results = threading.Event(), []
             host._window.evaluate_js((Path(__file__).parent / 'designer_menu_cases.js').read_text(encoding='utf-8'),
                                      lambda value: (menu_results.append(value), menu_ready.set()))
             assert menu_ready.wait(20), 'Menu checks did not finish'
             assert menu_results[0].get('passed', 0) == 50 and 'error' not in menu_results[0], menu_results
+            tabs_ready, tabs_results = threading.Event(), []
+            host._window.evaluate_js((Path(__file__).parent / 'designer_tab_cases.js').read_text(encoding='utf-8'),
+                                    lambda value: (tabs_results.append(value), tabs_ready.set()))
+            assert tabs_ready.wait(30), 'Form and event tab checks did not finish'
+            assert tabs_results[0].get('passed', 0) == 25 and 'error' not in tabs_results[0], tabs_results
+            workspace_ready, workspace_results = threading.Event(), []
+            host._window.evaluate_js((Path(__file__).parent / 'designer_workspace_cases.js').read_text(encoding='utf-8'),
+                                    lambda value: (workspace_results.append(value), workspace_ready.set()))
+            assert workspace_ready.wait(30), 'Docking checks did not finish'
+            assert workspace_results[0].get('passed', 0) == 45 and 'error' not in workspace_results[0], workspace_results
             for width, height in [(560, 430), (240, 260), (1280, 820)]:
                 host.resize(width, height)
                 threading.Event().wait(.2)
                 shell = host._window.evaluate_js("""(() => {
                   const chrome = menus.chrome.getBoundingClientRect(), workspace = document.getElementById('workspace').getBoundingClientRect();
                   return {top: chrome.top, height: chrome.height, workspaceTop: workspace.top,
-                    right: menus.buttons[5].getBoundingClientRect().right, width: innerWidth,
+                    right: menus.buttons.at(-1).getBoundingClientRect().right, width: innerWidth,
                     pageHeight: document.documentElement.scrollHeight, heightAvailable: innerHeight};
                 })()""")
                 assert shell['top'] == 0 and shell['height'] == 68 and shell['workspaceTop'] == 68, shell
@@ -123,7 +148,10 @@ def verify():
             assert 'springs' not in values[-1]['project']
             host._window.evaluate_js("project = JSON.parse(JSON.stringify(project)); render()")
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
+                          'form': runtime_form.form_id if runtime_mode else 'main',
                           'anchor_cases': cases['passed'], 'menu_checks': 0 if runtime_mode else menu_results[0]['passed'],
+                          'tab_checks': 0 if runtime_mode else tabs_results[0]['passed'],
+                          'workspace_checks': 0 if runtime_mode else workspace_results[0]['passed'],
                           'checks': 'passed'}))
     except Exception as exc:
         import traceback
@@ -135,7 +163,7 @@ def verify():
 
 threading.Thread(target=verify, daemon=True).start()
 if runtime_mode:
-    Runtime(app.project).launch(host)
+    Runtime(app.project, window_id=runtime_form.form_id).launch(host)
 else:
     app.launch(host)
 if errors:

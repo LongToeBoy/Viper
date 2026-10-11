@@ -19,9 +19,10 @@ project opens on either platform. No native library imports occur in shared code
 
 `assets/components.js` renders the actual controls for design, Preview and Run.
 `runtime.py` hosts the same interface definitions and dispatches named Python
-handlers supplied explicitly through `Runtime(project, handlers)`. Preview uses
-that same dispatcher through Bridge. Event mappings are serialized, Python source
-is not. Automatic handler-module discovery and a visual event editor are deferred.
+handlers supplied explicitly through `Runtime(project, handlers)` or authored in
+the Events editor. Preview uses that same dispatcher through Bridge. Event mappings
+and Python source are serialized; explicit registrations take precedence over saved
+source. Automatic external handler-module discovery remains deferred.
 
 ## Milestone 1 implementation
 
@@ -163,7 +164,7 @@ preferences, independent of saved application definitions and runtime styles.
 
 Save As reuses Save's existing native destination dialog. Stop exits embedded
 Preview; there is no child-process stop API. Undo/redo, element clipboard,
-multi-selection/alignment/distribution, additional project windows, hierarchy,
+multi-selection/alignment/distribution, hierarchy,
 recent projects and packaging remain disabled placeholders. Python handlers and
 event mappings are preserved by the existing duplication and serialization code.
 The chrome initializes before bootstrap and remains usable without a project.
@@ -175,3 +176,79 @@ nested keyboard navigation, context duplication, independent persistent toggles,
 snapping, no-project menus, stacking isolation, and resizing through 240-, 560-
 and 1280-pixel outer window widths. Linux GTK/WebKit native verification remains
 outstanding.
+
+## Form tabs and Python event authoring (2026-10-11)
+
+`WindowDefinition` holds the existing form geometry, window settings, controls and
+links. `Project` extends that definition for the startup form, preserving legacy
+top-level fields, and adds `windows` for extra forms and `event_code` for named
+Python source blocks. Stable `form_id` values distinguish forms; the startup form
+is `main`. Each form receives the same validation and headless layout solver.
+Existing single-form JSON loads with empty extra-form and event-source collections.
+
+`assets/designer-tabs.js` owns form and element Events tabs. Form tabs share the
+existing designer canvas, renderer, inspector and commands; no platform-specific
+editor was introduced. Selection, zoom and pan are remembered per form in editor
+state. The plus button and Insert > New Window share the action registry.
+Double-click or Edit Events opens one reusable editor tab per element. Event tabs
+can close without deleting mappings or source; they reopen from the owning form.
+Create handler generates a function only when that name has no saved source.
+Renames, duplicates, tab switches and serialization never regenerate user code.
+
+The event editor persists exact Python source, including unfinished drafts.
+`Runtime` compiles a source block lazily on its first dispatched event, checks its
+named callable, and caches it for subsequent events. Loading/designing a project
+does not execute source. Explicitly registered handlers retain precedence.
+Bridge invalidates Preview's dispatcher when a project update changes source.
+Preview and standalone Run identify the owning form through `window_id` in the
+shared event payload. Run snapshots the entire project and selects the active
+form through the shared runtime's `--window` argument. CLI/API launch defaults to
+the main form. Opening multiple application windows within a running application
+and automatic external source-module discovery remain future work.
+
+Verification: 27 Python tests passed, including legacy migration, form validation,
+verbatim/incomplete source persistence, dispatcher parity and selected-form Run
+snapshots. Native Windows WebView2 checks passed with 10 solver cases, 50 menu
+checks and 25 tab/editor checks. Standalone main and secondary forms passed native
+rendering, settings, resize/input preservation and authored Python event dispatch.
+Linux GTK/WebKit native verification remains outstanding.
+
+## Movable and docked workspace tools (2026-10-11)
+
+`assets/designer-workspace.js` manages registered tool definitions separately from
+forms and application data. Components and Inspector keep their existing DOM
+nodes, inputs and listeners as they move between left/right/top/bottom docks and
+floating groups. Each occupied dock holds one group; dropping another tool into
+that dock adds a tool tab. Floating groups can also merge. Dragging a group title
+moves all tools, while dragging a tool tab detaches only that tool. Close hides
+the active tool and remembers its group and placement for reopening.
+
+The workspace grid reserves the current dock dimensions around the central
+document area. Dock splitters and floating resize handles support pointer and
+keyboard changes. All tool groups and drop targets remain inside the workspace's
+isolated stacking context below the permanent application chrome. Pointer capture,
+pointer cancellation and Escape give gestures a defined lifetime. No animation
+loop or native platform code was added. Viewport clamping keeps floating groups
+reachable while retaining their requested geometry for larger workspace sizes.
+
+The Windows menu uses shared action commands for Components, Inspector and Reset
+Workspace. Context Properties opens and activates Inspector even in a tabbed
+group. The previous properties visibility preference is mirrored for compatibility;
+the workspace model owns actual placement and visibility. The Inspector remains
+available beside Events documents with geometry fields disabled in that view.
+
+Layout is saved under `viper.designer.workspace.v1` in local storage, independent
+of project JSON: dock sizes, group order and membership, active tools, floating
+rectangles and closed-tool placements. Validation rejects duplicate memberships,
+invalid locations, dimensions and unsupported versions. Unavailable or corrupt
+storage falls back to a usable session/default layout. New registered tools can
+be introduced without discarding saved groups. Reset Workspace restores the
+initial Components-left and Inspector-right arrangement. Project hierarchy and
+window deletion are deferred to the next stage, following the user's chosen order.
+
+Verification: 27 Python tests and native Windows WebView2 checks passed: 10 solver
+cases, 50 menu checks, 25 form/event checks and 45 workspace checks. Workspace
+checks cover pointer movement, docking on all four sides, grouped-title movement,
+tab detachment and merging, resizing, keyboard actions, cancellation, close/reopen,
+persisted layout loading, storage failure, input/focus preservation, chrome isolation
+and small viewport clamping. Linux GTK/WebKit verification remains outstanding.

@@ -23,7 +23,8 @@ body {
 
 .designer-shell {
   display: grid;
-  grid-template-columns: var(--palette-width) minmax(0, 1fr) var(--inspector-width);
+  grid-template-columns: var(--dock-left, 0px) minmax(0, 1fr) var(--dock-right, 0px);
+  grid-template-rows: var(--dock-top, 0px) minmax(0, 1fr) var(--dock-bottom, 0px);
   height: 100%;
   gap: 0;
   padding: 0;
@@ -62,11 +63,34 @@ body {
 }
 
 .canvas-panel {
+  grid-column: 2; grid-row: 2;
   display: flex;
   flex-direction: column;
   background: rgba(12, 17, 28, 0.92);
   min-height: 0;
+  min-width: 0;
 }
+
+.document-bar { display: flex; flex-shrink: 0; height: 38px; background: var(--panel); border-bottom: 1px solid var(--line); }
+#document-tabs { display: flex; flex: 1; min-width: 0; overflow-x: auto; align-items: stretch; }
+.document-tab { display: flex; flex: 0 0 auto; max-width: 220px; margin: 4px 2px 0; border-radius: 8px 8px 0 0; background: var(--panel-alt); }
+.document-tab.active { background: #304565; box-shadow: inset 0 -2px var(--accent); }
+.document-tab button, .new-form-button { background: transparent; color: var(--text); border: 0; cursor: pointer; }
+.document-tab [role=tab] { padding: 7px 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.document-tab .close-tab { padding: 0 8px; color: var(--muted); }
+.new-form-button { flex: 0 0 36px; font-size: 23px; }
+.document-bar button:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.event-editor { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 12px; padding: 18px; overflow: auto; }
+.event-editor h2, .event-editor p { margin: 0; }
+.event-editor h2 { font-size: 16px; }
+.event-options { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.event-options label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; min-width: 0; }
+.event-options input { width: 210px; max-width: 100%; }
+.event-source-label { font-size: 12px; color: var(--muted); }
+#event-source { flex: 1; min-height: 180px; width: 100%; resize: none; padding: 14px; background: #0a1220;
+  color: #e5ecff; border: 1px solid var(--line); border-radius: 6px; font: 14px/1.6 Consolas, monospace; tab-size: 4; white-space: pre; }
+#event-editor[hidden], #design-viewport[hidden] { display: none; }
+.workspace-events .tool-item { opacity: .45; cursor: default; }
 
 .inspector, .toolbox { overflow-y: auto; }
 .design-viewport { position: relative; flex: 1; min-height: 0; overflow: hidden;
@@ -195,8 +219,6 @@ input {
 /* Permanent chrome reserves space; every editor lives in the clipped workspace.
    Workspace descendants cannot escape its stacking context, even with high z-index. */
 .application-shell {
-  --palette-width: clamp(100px, 18vw, 220px);
-  --inspector-width: clamp(150px, 22vw, 260px);
   display: grid; grid-template-rows: 68px minmax(0, 1fr);
   height: 100vh; overflow: hidden; isolation: isolate;
 }
@@ -210,8 +232,6 @@ input {
 .toolbox, .inspector { overscroll-behavior: contain; }
 .inspector input, .inspector select { width: 100%; min-width: 0; }
 .inspector input[type="checkbox"] { width: auto; }
-.properties-hidden { grid-template-columns: var(--palette-width) minmax(0, 1fr); }
-.properties-hidden .inspector { display: none; }
 .workspace-empty .window-stage { display: none; }
 .workspace-empty .toolbox, .workspace-empty .inspector { visibility: hidden; }
 .menu-bar { display: flex; align-items: stretch; min-width: 0; border-bottom: 1px solid var(--line); padding: 0 5px; }
@@ -250,15 +270,56 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .grid-hidden .design-viewport, .grid-hidden .window-frame .canvas { background-image: none; }
 #workspace.anchors-hidden .position-anchor, #workspace.anchors-hidden .link-overlay { display: none; }
 @media (max-width: 640px) {
-  .application-shell { --palette-width: 80px; --inspector-width: 110px; }
   .toolbox, .inspector { padding: 12px 6px; }
   .toolbox h2, .inspector h2 { font-size: 11px; letter-spacing: 0; }
   .tool-item { padding: 8px 4px; font-size: 12px; }
   .menu-heading { padding: 0 8px; }
 }
+
+/* Tool panels remain inside the workspace's stacking and clipping boundary. */
+.dock-slot { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.dock-left { grid-column: 1; grid-row: 2; }
+.dock-right { grid-column: 3; grid-row: 2; }
+.dock-top { grid-column: 1 / -1; grid-row: 1; }
+.dock-bottom { grid-column: 1 / -1; grid-row: 3; }
+.dock-slot[hidden], .tool-panel[hidden], .panel-tabs[hidden], .dock-targets[hidden], #tool-parking { display: none; }
+.floating-tools, .dock-targets { position: absolute; inset: 0; pointer-events: none; }
+.floating-tools { z-index: 20; }
+.dock-targets { z-index: 40; }
+.tool-group { display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100%; width: 100%;
+  background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+.tool-group.floating { position: absolute; pointer-events: auto; border-radius: 7px; box-shadow: 0 12px 32px #0008; }
+.tool-group.dragging { opacity: .85; outline: 2px solid var(--accent); }
+.panel-header { display: flex; align-items: center; gap: 2px; flex: 0 0 30px; min-width: 0;
+  background: #1c2b43; border-bottom: 1px solid var(--line); cursor: grab; touch-action: none;
+  user-select: none; -webkit-user-select: none; }
+.panel-title { flex: 1; min-width: 0; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600; }
+.panel-header button, .panel-placement { flex: 0 0 24px; width: 24px; height: 25px; padding: 0; border: 0;
+  background: transparent; color: var(--muted); cursor: pointer; font-size: 15px; border-radius: 3px; }
+.panel-placement { font-size: 12px; }
+.panel-header button:hover, .panel-placement:hover { background: #304565; color: white; }
+.panel-tabs { display: flex; flex: 0 0 29px; min-width: 0; overflow-x: auto; background: #101b2e; }
+.panel-tab { flex: 0 0 auto; padding: 5px 10px; border: 0; background: transparent; color: var(--muted);
+  font-size: 12px; cursor: grab; touch-action: none; }
+.panel-tab[aria-selected=true] { background: var(--panel-alt); color: var(--text); box-shadow: inset 0 -2px var(--accent); }
+.panel-content { display: flex; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
+.panel-content > .tool-panel { flex: 1; width: 100%; min-height: 0; min-width: 0; overflow: auto; border: 0; overscroll-behavior: contain; }
+.dock-splitter { position: absolute; z-index: 2; touch-action: none; background: transparent; }
+.dock-splitter:hover, .dock-splitter:focus-visible { background: var(--accent); }
+.dock-left > .dock-splitter { top: 0; right: 0; bottom: 0; width: 5px; cursor: ew-resize; }
+.dock-right > .dock-splitter { top: 0; left: 0; bottom: 0; width: 5px; cursor: ew-resize; }
+.dock-top > .dock-splitter { left: 0; right: 0; bottom: 0; height: 5px; cursor: ns-resize; }
+.dock-bottom > .dock-splitter { left: 0; right: 0; top: 0; height: 5px; cursor: ns-resize; }
+.floating-resizer { position: absolute; bottom: 1px; right: 1px; width: 14px; height: 14px;
+  border: 0; background: linear-gradient(135deg, transparent 50%, #5ba0ff 50%, transparent 65%, #5ba0ff 65%);
+  cursor: nwse-resize; touch-action: none; }
+.dock-target { position: absolute; display: grid; place-items: center; border: 2px dashed #6daaff;
+  border-radius: 6px; background: #173b65cc; color: white; font-size: 12px; pointer-events: none; }
+.dock-target.selected { border-style: solid; background: #296eb8e8; box-shadow: 0 0 0 2px #8ac7ff; }
+.workspace-dragging, .workspace-dragging * { user-select: none; -webkit-user-select: none; }
 @media (max-width: 360px) {
   .menu-bar { padding: 0 2px; }
-  .menu-heading { flex: 1; padding: 0 3px; font-size: 11px; }
+  .menu-heading { flex: 1; min-width: 0; padding: 0 2px; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
   .compact-toolbar { gap: 0; padding: 3px 2px; }
   .toolbar-separator { margin: 0 2px; }
   .toolbar-action { min-width: 24px; padding: 0 3px; }

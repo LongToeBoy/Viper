@@ -21,8 +21,14 @@
         </section>
       </header>
       <div id="workspace" class="designer-shell">
-      <aside class="toolbox">
-        <h2>Components</h2>
+      <div id="dock-left" class="dock-slot dock-left" hidden></div>
+      <div id="dock-right" class="dock-slot dock-right" hidden></div>
+      <div id="dock-top" class="dock-slot dock-top" hidden></div>
+      <div id="dock-bottom" class="dock-slot dock-bottom" hidden></div>
+      <div id="floating-tools" class="floating-tools"></div>
+      <div id="dock-targets" class="dock-targets" aria-hidden="true" hidden></div>
+      <div id="tool-parking" hidden>
+      <aside id="components-tool" class="toolbox tool-panel" aria-label="Components">
         <p class="property-help">Drag a component onto the board to add it.</p>
         <div class="tool-item" data-kind="button">Button</div>
         <div class="tool-item" data-kind="label">Label</div>
@@ -30,9 +36,26 @@
         <div class="tool-item" data-kind="checkbox">Checkbox</div>
         <div class="tool-item" data-kind="panel">Panel</div>
       </aside>
+      </div>
 
       <main class="canvas-panel">
-        <div id="design-viewport" class="design-viewport" title="Drag the board or window frame to pan. Scroll to zoom.">
+        <div class="document-bar">
+          <div id="document-tabs" role="tablist" aria-label="Forms and events"></div>
+          <button id="add-window" class="new-form-button" title="New window" aria-label="New window">+</button>
+        </div>
+        <section id="event-editor" class="event-editor" role="tabpanel" aria-label="Element events" hidden>
+          <h2 id="event-heading">Events</h2>
+          <div class="event-options">
+            <label>Event <select id="event-kind"></select></label>
+            <label>Handler <input id="event-handler" type="text" spellcheck="false" placeholder="Python function name"></label>
+            <button id="create-event-handler" class="tool-button">Create handler</button>
+          </div>
+          <p class="property-help">Write a Python function that accepts event. Changes save with the project; Preview and Run execute the handler.</p>
+          <label class="event-source-label" for="event-source">Python code</label>
+          <textarea id="event-source" spellcheck="false" aria-label="Python event code" placeholder="Choose Create handler to start, or write your function here."></textarea>
+          <p id="event-code-status" class="property-help" role="status"></p>
+        </section>
+        <div id="design-viewport" class="design-viewport" role="tabpanel" aria-label="Visual form" title="Drag the board or window frame to pan. Scroll to zoom.">
           <div id="window-stage" class="window-stage">
             <section id="window-frame" class="window-frame selected" aria-label="Application window">
               <div id="window-titlebar" class="window-titlebar" tabindex="0" role="button" aria-label="Select window properties">
@@ -48,8 +71,7 @@
         <p id="status" role="status">Connecting to desktop host...</p>
       </main>
 
-      <aside class="inspector">
-        <h2>Inspector</h2>
+      <aside id="inspector-tool" class="inspector tool-panel" aria-label="Inspector">
         <div class="property-group" id="window-properties">
           <h3>Window properties</h3>
           <label>Name <input id="window-name" type="text"></label>
@@ -97,7 +119,9 @@
     <script src="actions.js"></script>
     <script src="menus.js"></script>
     <script src="designer-preferences.js"></script>
+    <script src="designer-workspace.js"></script>
     <script src="designer-chrome.js"></script>
+    <script src="designer-tabs.js"></script>
     <script src="designer.js"></script>
   </body>
 </html>

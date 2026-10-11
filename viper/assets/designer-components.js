@@ -37,6 +37,10 @@ window.viperDesignerComponents = {
     menu.addEventListener('click', event => event.stopPropagation());
     menu.onchange = event => { event.stopPropagation(); callbacks.sizeMode(component.id, menu.value); menu.value = component.size_mode; };
     wrapper.appendChild(menu);
+    wrapper.addEventListener('dblclick', event => {
+      if (event.target.closest('.position-anchor, .resize-handle, .component-size-menu')) return;
+      event.preventDefault(); event.stopPropagation(); callbacks.events(component.id);
+    });
     wrapper.addEventListener('click', event => {
       event.stopPropagation();
       const anchor = event.target.closest('.position-anchor');
@@ -70,7 +74,9 @@ window.viperDesignerComponents = {
         wrapper.removeEventListener('pointercancel', end);
         wrapper.removeEventListener('lostpointercapture', end);
         if (wrapper.hasPointerCapture(event.pointerId)) wrapper.releasePointerCapture(event.pointerId);
-        callbacks.changed();
+        // Keep the same node on a plain click so the browser can recognize a double-click.
+        if (callbacks.rectangle(component.id) &&
+            Object.keys(origin).some(key => callbacks.rectangle(component.id)[key] !== origin[key])) callbacks.changed();
       }
       wrapper.addEventListener('pointermove', move);
       wrapper.addEventListener('pointerup', end);

@@ -49,12 +49,12 @@ and Delete act on selection. Save/Open use native JSON file dialogs. Preview
 uses the same real controls as Run; Run opens a separate native runtime process.
 Save before replacing a project with New or Open.
 
-The permanent **File**, **Edit**, **Insert**, **Layout**, **View** and **Run** menus
+The permanent **File**, **Edit**, **Insert**, **Layout**, **View**, **Run** and **Windows** menus
 sit above the workspace, with a compact Save, Undo/Redo, snapping, Preview and Run
 toolbar. Insert's Widgets and Controls submenu uses the same creation commands
 as the palette. Right-click an element for Duplicate, Delete, Align, Connect
 Anchors and Properties. Unsupported features, including Undo/Redo, clipboard,
-multi-selection alignment, hierarchy, additional windows and packaging, appear
+multi-selection alignment, hierarchy and packaging, appear
 disabled. Save As uses the existing native save destination dialog. Stop Preview
 returns to editing; separately launched applications use their native close button.
 
@@ -70,8 +70,47 @@ preferences. Their current states are shown in the menus and toolbar and persist
 across sessions when local storage is available. Snapping defaults off and applies
 when moving elements; enabling both prefers nearby element edges/centers over the
 grid. Layout's Grid Settings adjusts spacing in client pixels. View also controls
-anchor visibility and the Properties Panel. These preferences do not change saved
+anchor visibility and the Inspector. These preferences do not change saved
 application definitions or runtime styling.
+
+The main area opens with one visual form tab. Click **+** beside the tabs or
+**Insert > New Window** to create another form. Each form has its own controls,
+anchor links and window properties. Switching tabs retains its selection, zoom
+and pan. **Preview** and **Run** use the current form; the main form remains the
+default when launching a saved project from Python or the command line.
+
+Double-click an element, or choose **Edit Events** from its context menu, to open
+its Events tab. Select **click** or **change**, then **Create handler** and edit
+the Python function. The function receives the shared event dictionary with
+`component_id`, `window_id`, `event` and `value`. Code and event mappings save in
+the project JSON. Closing an Events tab preserves its code, and Create handler
+never replaces existing source. Renaming or duplicating an element also preserves
+its handlers. Arrow keys, Home and End navigate focused tabs.
+
+## Workspace tools
+
+**Windows > Components** and **Windows > Inspector** open or close the editor's
+tools. Each tool starts docked, and can float inside the workspace. Drag its title
+bar to move it; highlighted targets let you dock on the left, right, top or bottom.
+Dropping into an occupied dock combines the tools into a tabbed group. Drop onto
+**Join tabs** above another floating tool to combine them there as well.
+
+Drag a group's title bar to move all its tools together, or drag an individual
+tool tab to move just that tool. The arrow menu in a title bar also offers Float
+and the four dock positions. The close button closes the active tool; reopen it
+through Windows. Closing tools leaves forms, components and event code intact.
+Tool tabs are separate from the form and Events tabs in the main area.
+
+Resize a dock by dragging its inner boundary, or resize a floating group using its
+lower-right handle. Focused tool tabs support arrow keys, Home and End; focused
+resize handles support arrow keys, with Shift for larger steps. Escape cancels an
+active drag or resize. **Windows > Reset Workspace** restores the initial layout.
+
+Dock positions, groups, active tool tabs, sizes and closed tools persist locally
+between sessions when storage is available. This layout is independent of saved
+project definitions. Small workspace sizes keep floating tools reachable without
+overwriting their saved size. Project ownership and hierarchy editing remain the
+next workspace milestone.
 
 ## Relative anchor layout
 
@@ -118,8 +157,11 @@ these settings to the native window; the IDE window retains its own settings.
 The frame is a design guide rather than an exact replica of each operating
 system's window decorations.
 
-Projects use readable versioned JSON, including event mappings. The Python runtime
-accepts explicitly registered named event handlers without rewriting user code:
+Projects use readable versioned JSON, including event mappings and authored Python
+source. Preview and Run load project source only when an event invokes its named
+handler. Incomplete edits can be saved; Python errors are reported on dispatch.
+The Python runtime also accepts explicitly registered named event handlers, which
+take precedence over project source without rewriting it:
 
 ```python
 from pathlib import Path
@@ -131,7 +173,9 @@ Runtime(project, handlers={'launch': lambda event: print(event)}).launch()
 ```
 
 A saved project can also run with `python -m viper.runtime project.json`.
-The CLI does not discover handler source automatically. Handler authoring,
+Use `python -m viper.runtime project.json --window FORM_ID` or
+`Runtime(project, window_id='FORM_ID')` to launch another saved form.
+The CLI does not discover external handler modules automatically.
 Windows .exe packaging, Linux .desktop installation and standalone bundling are
 future milestones; generated projects must continue using this shared runtime.
 
@@ -153,10 +197,12 @@ python -m pip install pytest
 python -m pytest -q -p no:cacheprovider
 python tests/windows_smoke.py
 python tests/windows_smoke.py --runtime
+python tests/windows_smoke.py --runtime --secondary
 ```
 
-Twenty-one automated Python tests passed, plus ten deterministic hard-layout
-checks in WebView2, 50 menu/action assertions, and native designer/runtime anchor
+Twenty-seven automated Python tests passed, plus ten deterministic hard-layout
+checks in WebView2, 50 menu/action assertions, 25 form/event tab checks,
+45 docking/workspace checks and native designer/runtime anchor
 integration checks. Shell resizing and stacking isolation are checked at narrow
 and full-size window dimensions.
 Windows WebView2 startup, the bridge, real-control
@@ -165,5 +211,6 @@ have been exercised. Linux is implemented but has not been tested on Linux.
 Window title/size editing and runtime icon, title and resizing settings are also
 covered by native Windows smoke checks. Native file dialogs, Run's child window and visual editing still need
 manual end-to-end verification. Chromium/WebKit styling equivalence requires
-checks on both engines. Nested containers, theme editing, undo/redo, handler
-editing and deployment exporters are deferred.
+checks on both engines. Native form switching, source persistence and authored
+handler execution passed in the designer and in main/secondary runtime forms.
+Nested containers, theme editing, undo/redo and deployment exporters are deferred.

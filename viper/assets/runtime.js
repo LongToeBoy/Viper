@@ -7,7 +7,7 @@ function render() {
   const nodes = new Map();
   for (const component of project.components) {
     const el = viperComponents.make(component, true, payload => {
-      viperHost.request('event', payload).catch(error => alert(error.message));
+      viperHost.request('event', {...payload, window_id: project.form_id || 'main'}).catch(error => alert(error.message));
     });
     canvas.appendChild(el);
     nodes.set(component.id, el);

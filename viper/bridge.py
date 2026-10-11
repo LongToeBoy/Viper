@@ -16,6 +16,7 @@ class Bridge:
     def __init__(self, app: ViperApp) -> None:
         self.app = app
         self._lock = RLock()
+        self._runtime = None
 
     def receive(self, message: dict[str, Any], reply: Reply) -> None:
         request_id = message.get("id")
@@ -34,9 +35,11 @@ class Bridge:
                     success({"project": self.app.project.to_dict(), "library": COMPONENT_LIBRARY})
                 elif command == "update":
                     self.app.replace_project(Project.from_dict(payload["project"]))
+                    self._runtime = None
                     success(self.app.project.to_dict())
                 elif command == "new":
                     self.app.replace_project(Project())
+                    self._runtime = None
                     success(self.app.project.to_dict())
                 elif command in ("save", "open"):
                     if self.app.host is None:
@@ -55,17 +58,20 @@ class Bridge:
                                     success({"saved": True})
                                 else:
                                     success({"project": self.app.load(path).to_dict()})
+                                    self._runtime = None
                         except Exception as exc:
                             failure(exc)
 
                     self.app.host.file_dialog(command == "save", selected)
                 elif command == "run":
                     from .runtime import start_project
-                    start_project(self.app.project)
+                    start_project(self.app.project, payload.get('window_id', 'main'))
                     success({"started": True})
                 elif command == "event":
                     from .runtime import Runtime
-                    Runtime(self.app.project, self.app.handlers).receive(message, reply)
+                    if self._runtime is None or self._runtime.project is not self.app.project:
+                        self._runtime = Runtime(self.app.project, self.app.handlers)
+                    self._runtime.receive(message, reply)
                 else:
                     raise ValueError(f"Unknown command: {command}")
         except Exception as exc:

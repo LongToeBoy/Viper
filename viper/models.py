@@ -165,7 +165,7 @@ class Component:
 
 
 @dataclass
-class Project:
+class WindowDefinition:
     name: str = "Untitled Project"
     description: str = ""
     version: int = 1
@@ -174,6 +174,7 @@ class Project:
     components: list[Component] = field(default_factory=list)
     window: WindowSettings = field(default_factory=WindowSettings)
     links: list[dict[str, Any]] = field(default_factory=list)
+    form_id: str = 'main'
 
     def __post_init__(self):
         if self.window.title == "Untitled Project":
@@ -212,10 +213,11 @@ class Project:
             "components": [component.to_dict() for component in self.components],
             "window": self.window.to_dict(),
             "links": self.links,
+            "form_id": self.form_id,
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Project":
+    def from_dict(cls, data: dict[str, Any]) -> "WindowDefinition":
         components = []
         for item in data.get('components', []):
             record = dict(item)
@@ -234,5 +236,40 @@ class Project:
             components=components,
             window=WindowSettings.from_dict(data.get("window", {}), str(data.get("name", "Untitled Project"))),
             links=[link_definition(s) for s in data.get('links', [])],
+            form_id=str(data.get('form_id', 'main')),
         )
         return project
+
+
+@dataclass
+class Project(WindowDefinition):
+    """The original fields define the startup form; extra forms share its model."""
+
+    windows: list[WindowDefinition] = field(default_factory=list)
+    event_code: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self):
+        super().__post_init__()
+        form_ids = [self.form_id, *(form.form_id for form in self.windows)]
+        if self.form_id != 'main' or any(not key for key in form_ids) or len(set(form_ids)) != len(form_ids):
+            raise ValueError('Window IDs must be unique; the startup window ID is main')
+        if not all(isinstance(key, str) and isinstance(source, str) for key, source in self.event_code.items()):
+            raise ValueError('Event code must map handler names to Python source strings')
+
+    def get_window(self, form_id='main') -> WindowDefinition:
+        if form_id == self.form_id:
+            return self
+        for form in self.windows:
+            if form.form_id == form_id:
+                return form
+        raise ValueError(f'Unknown window: {form_id}')
+
+    def to_dict(self):
+        return {**super().to_dict(), 'windows': [form.to_dict() for form in self.windows],
+                'event_code': dict(self.event_code)}
+
+    @classmethod
+    def from_dict(cls, data):
+        form = WindowDefinition.from_dict(data)
+        return cls(**vars(form), windows=[WindowDefinition.from_dict(item) for item in data.get('windows', [])],
+                   event_code=dict(data.get('event_code', {})))
