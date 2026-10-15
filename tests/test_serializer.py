@@ -9,7 +9,7 @@ def test_project_serialization_round_trip(tmp_path):
     destination = tmp_path / "project.json"
     dumped = serialize_project(app.project)
 
-    assert dumped["schema_version"] == 1
+    assert dumped["schema_version"] == 2
     assert "project" in dumped
 
     destination.write_text(json.dumps(dumped), encoding="utf-8")

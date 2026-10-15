@@ -252,3 +252,53 @@ checks cover pointer movement, docking on all four sides, grouped-title movement
 tab detachment and merging, resizing, keyboard actions, cancellation, close/reopen,
 persisted layout loading, storage failure, input/focus preservation, chrome isolation
 and small viewport clamping. Linux GTK/WebKit verification remains outstanding.
+
+## Project ownership and hierarchy (2026-10-15)
+
+`Project` now owns metadata, **all** sibling `WindowDefinition` children, a
+`startup_window_id` and shared `event_code`. It no longer inherits a window.
+Schema version 2 serializes that ownership directly. Schema version 1 and bare
+legacy projects migrate the original top-level form plus additional windows into
+one list, retaining form/component IDs, window settings, links, event mappings and
+verbatim source. Empty projects serialize with no windows and a null startup ID.
+The original Python startup-form keyword options and accessors (`window`,
+`components`, `links`, client dimensions) remain available and delegate to the
+startup child. `get_window()` and Runtime/CLI defaults use the configured startup
+ID; explicit IDs still select individual forms. ViperApp accepts empty projects
+and can add components to a specified child through `window_id`.
+
+`assets/designer-explorer.js` renders Project -> Windows -> Components in a
+registered dockable tool. It shares the left dock with Components by default.
+Existing saved workspace arrangements gain the new tool without discarding dock
+sizes or groups; subsequently closed Explorer panels remain closed until reopened.
+Windows > Project Explorer and View use the same command. The tree provides
+selection, disclosure controls, arrow/Home/End/Enter/Space navigation, a single
+roving focus, F2 rename and context menus backed by the existing action registry.
+Selection-only changes retain tree rows so native double-click recognition works.
+Components in the tree open their owning form, including hidden components, and
+double-click opens their existing Events document. Canvas selection reveals its
+tree entry. Project selection displays metadata and startup choice in Inspector.
+
+New Window always creates a project child. Document tabs can close independently
+of project objects, and Explorer reopens closed form tabs. Deleting a window asks
+for confirmation, removes its components and all owned documents/view state, and
+chooses the first remaining sibling if startup was removed. Any form, including
+the original main form and the final form, may be deleted. The empty document view
+allows saving the project, opening Explorer and creating a new startup child.
+Deleting a component removes its incoming/outgoing links and Events documents.
+Neither operation deletes Python source; unmapped or shared code is retained.
+Stable IDs preserve sibling definitions, anchor references and handler names on
+rename, selection or startup changes. Preview disables hierarchy mutations.
+
+Designer, Preview and Run continue using the same per-window rendering, styles,
+headless solver and event API. Components and anchor links remain in their owning
+window's coordinate system. Nested panel children and drag-based reparenting are
+not implemented by this hierarchy milestone.
+
+Verification: 35 Python tests passed, including schema migration, complete window
+ownership, independent metadata, startup selection, empty-project recovery, source
+preservation, per-window component IDs and rejection of cross-window anchor links.
+Native Windows WebView2 checks passed with 10 solver cases, 50 menu checks, 25
+form/event checks, 45 workspace checks and 51 hierarchy checks. Native main and
+secondary startup runtimes passed settings/rendering, resizing/input retention and
+authored event dispatch. Linux GTK/WebKit native verification remains outstanding.

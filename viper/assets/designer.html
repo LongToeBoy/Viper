@@ -28,6 +28,14 @@
       <div id="floating-tools" class="floating-tools"></div>
       <div id="dock-targets" class="dock-targets" aria-hidden="true" hidden></div>
       <div id="tool-parking" hidden>
+      <aside id="project-tool" class="tool-panel project-explorer" aria-label="Project Explorer">
+        <div class="explorer-tools" role="toolbar" aria-label="Project actions">
+          <button id="explorer-new-window" class="tool-button" title="New sibling window">+ Window</button>
+          <button id="explorer-rename" class="tool-button" title="Rename selection (F2)">Rename</button>
+          <button id="explorer-delete" class="tool-button" title="Delete selection">Delete</button>
+        </div>
+        <ul id="project-tree" role="tree" aria-label="Project hierarchy"></ul>
+      </aside>
       <aside id="components-tool" class="toolbox tool-panel" aria-label="Components">
         <p class="property-help">Drag a component onto the board to add it.</p>
         <div class="tool-item" data-kind="button">Button</div>
@@ -43,6 +51,11 @@
           <div id="document-tabs" role="tablist" aria-label="Forms and events"></div>
           <button id="add-window" class="new-form-button" title="New window" aria-label="New window">+</button>
         </div>
+        <section id="document-empty" class="document-empty" hidden>
+          <p>No form is open.</p>
+          <button id="open-project-explorer" class="tool-button">Open Project Explorer</button>
+          <button id="empty-new-window" class="tool-button">New Window</button>
+        </section>
         <section id="event-editor" class="event-editor" role="tabpanel" aria-label="Element events" hidden>
           <h2 id="event-heading">Events</h2>
           <div class="event-options">
@@ -72,6 +85,12 @@
       </main>
 
       <aside id="inspector-tool" class="inspector tool-panel" aria-label="Inspector">
+        <div class="property-group" id="project-properties" hidden>
+          <h3>Project properties</h3>
+          <label>Name <input id="project-name" type="text"></label>
+          <label>Description <textarea id="project-description" rows="4"></textarea></label>
+          <label>Startup window <select id="project-startup"></select></label>
+        </div>
         <div class="property-group" id="window-properties">
           <h3>Window properties</h3>
           <label>Name <input id="window-name" type="text"></label>
@@ -120,6 +139,7 @@
     <script src="menus.js"></script>
     <script src="designer-preferences.js"></script>
     <script src="designer-workspace.js"></script>
+    <script src="designer-explorer.js"></script>
     <script src="designer-chrome.js"></script>
     <script src="designer-tabs.js"></script>
     <script src="designer.js"></script>

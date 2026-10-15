@@ -25,7 +25,7 @@
   const rejects = state => { try { ViperDesignerWorkspace.normalize(state, panels.definitions); return false; } catch (_) { return true; } };
   const stable = value => JSON.stringify(value, Object.keys(value).sort());
   try {
-    panels.reset(); workspace.setPointerCapture = () => {}; workspace.hasPointerCapture = () => false;
+    panels.reset(); panels.hide('project'); workspace.setPointerCapture = () => {}; workspace.hasPointerCapture = () => false;
     const projectBefore = JSON.stringify(projectRoot);
     assert(panels.groupFor('components').location === 'left' && panels.groupFor('inspector').location === 'right', 'Default tools dock on opposite sides');
     assert(menus.buttons.at(-1).textContent === 'Windows' && actions.state('components-panel').checked && actions.state('properties-panel').checked,
@@ -99,7 +99,7 @@
     groupNode('inspector').querySelector('.panel-header button').click();
     assert(!panels.isOpen('inspector') && panels.isOpen('components') && !actions.state('properties-panel').checked, 'Close removes only the active tool');
     panels.hide('components');
-    assert(panels.state.groups.length === 0 && panels.state.closed.length === 2, 'Closing all tools leaves the documents usable');
+    assert(panels.state.groups.length === 0 && panels.state.closed.length === 3, 'Closing all tools leaves the documents usable');
     actions.execute('properties-panel'); actions.execute('components-panel');
     assert(panels.groupFor('inspector').id === rememberedGroup && panels.groupFor('components').id === rememberedGroup, 'Reopening restores a closed floating tab group');
     const saved = panels.snapshot();
@@ -111,8 +111,8 @@
         group.tools.join(',') === expected.tools.join(',') && stable(group.rect) === stable(expected.rect);
     }) && stable(reloaded.sizes) === stable(saved.sizes), 'Saved groups, active tabs and rectangles reload exactly');
     assert(JSON.stringify(projectRoot) === projectBefore, 'Panel operations never modify project geometry or source');
-    const future = ViperDesignerWorkspace.normalize(saved, [...panels.definitions, {id: 'project', location: 'left'}]);
-    assert(future.groups.length === saved.groups.length && future.closed.some(tool => tool.tool === 'project'), 'Future tools can register without resetting the layout');
+    const future = ViperDesignerWorkspace.normalize(saved, [...panels.definitions, {id: 'future-tool', location: 'left'}]);
+    assert(future.groups.length === saved.groups.length && future.closed.some(tool => tool.tool === 'future-tool'), 'Future tools can register without resetting the layout');
     const invalidSize = clone(saved); invalidSize.sizes.left = null;
     assert(rejects(invalidSize), 'Invalid stored dimensions are rejected');
     const duplicateTool = clone(saved); duplicateTool.groups[0].tools.push(duplicateTool.groups[0].tools[0]);

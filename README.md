@@ -54,14 +54,15 @@ sit above the workspace, with a compact Save, Undo/Redo, snapping, Preview and R
 toolbar. Insert's Widgets and Controls submenu uses the same creation commands
 as the palette. Right-click an element for Duplicate, Delete, Align, Connect
 Anchors and Properties. Unsupported features, including Undo/Redo, clipboard,
-multi-selection alignment, hierarchy and packaging, appear
+multi-selection alignment and packaging, appear
 disabled. Save As uses the existing native save destination dialog. Stop Preview
 returns to editing; separately launched applications use their native close button.
 
 Use F10 or Alt plus a menu's first letter to focus/open the menus, arrow keys to
 navigate submenus, Enter to activate, and Escape to close. Ctrl+S saves, Ctrl+O
 opens, Ctrl+N creates a project, Ctrl+D duplicates and Delete removes the selected
-element. F6 toggles Preview, F5 runs, and Shift+F5 stops Preview. Text fields retain
+component or window (windows require confirmation). F2 renames through Inspector.
+F6 toggles Preview, F5 runs, and Shift+F5 stops Preview. Text fields retain
 their normal editing shortcuts. View's Zoom menu also provides Ctrl+=, Ctrl+-
 and Ctrl+0 for zoom in, out and reset/fit.
 
@@ -76,8 +77,8 @@ application definitions or runtime styling.
 The main area opens with one visual form tab. Click **+** beside the tabs or
 **Insert > New Window** to create another form. Each form has its own controls,
 anchor links and window properties. Switching tabs retains its selection, zoom
-and pan. **Preview** and **Run** use the current form; the main form remains the
-default when launching a saved project from Python or the command line.
+and pan. **Preview** and **Run** use the current form. When the project is selected,
+they use its configured startup window, as do Python and command-line launches.
 
 Double-click an element, or choose **Edit Events** from its context menu, to open
 its Events tab. Select **click** or **change**, then **Create handler** and edit
@@ -89,7 +90,7 @@ its handlers. Arrow keys, Home and End navigate focused tabs.
 
 ## Workspace tools
 
-**Windows > Components** and **Windows > Inspector** open or close the editor's
+**Windows > Project Explorer**, **Components** and **Inspector** open or close the editor's
 tools. Each tool starts docked, and can float inside the workspace. Drag its title
 bar to move it; highlighted targets let you dock on the left, right, top or bottom.
 Dropping into an occupied dock combines the tools into a tabbed group. Drop onto
@@ -109,8 +110,39 @@ active drag or resize. **Windows > Reset Workspace** restores the initial layout
 Dock positions, groups, active tool tabs, sizes and closed tools persist locally
 between sessions when storage is available. This layout is independent of saved
 project definitions. Small workspace sizes keep floating tools reachable without
-overwriting their saved size. Project ownership and hierarchy editing remain the
-next workspace milestone.
+overwriting their saved size. Project Explorer shares the left dock with Components
+by default, and uses the same floating, docking and tab grouping behavior.
+
+## Project hierarchy
+
+Project Explorer shows **Project → Windows → Components**. All windows are siblings
+owned by the project; each component belongs to one window. Click a window to open
+its form, or a component to select it on that form and inspect its properties.
+Hidden components remain accessible through the tree. Double-click a component
+to open its Events tab. The tree supports arrow keys, Home, End and Enter/Space;
+F2 opens the selected item's name in Inspector.
+
+Select the project to edit its name, description and **Startup window**. A window's
+context menu also provides **Set as Startup Window**. **+ Window**, Insert > New
+Window and the form tab's plus button always create another child of the project.
+Window and component names are edited in their existing Inspector fields, and
+renames preserve IDs, anchors and event mappings.
+
+Closing a form tab keeps its window in the project; select that window in Explorer
+to reopen it. **Delete** on a selected window asks for confirmation and removes the
+window, its components and its form/Events tabs. Deleting the startup window chooses
+the first remaining sibling as startup. Deleting the final window leaves an empty
+project that can still be saved and reopened; New Window starts designing again.
+Deleting a component also removes its anchor links and stale Events tabs. User
+Python source is retained after either kind of deletion, including unmapped source
+and code shared by surviving components.
+
+Project JSON now uses schema version 2, with metadata, a list containing all windows,
+`startup_window_id` and `event_code`. Version 1 projects migrate on load, preserving
+the original startup form, additional forms, IDs, layout and source. Subsequent saves
+use version 2. Existing Python startup-form accessors such as `project.window` and
+`project.components` still delegate to the configured startup window; explicit
+ownership is available through `project.windows` and `project.get_window(form_id)`.
 
 ## Relative anchor layout
 
@@ -200,9 +232,9 @@ python tests/windows_smoke.py --runtime
 python tests/windows_smoke.py --runtime --secondary
 ```
 
-Twenty-seven automated Python tests passed, plus ten deterministic hard-layout
+Thirty-five automated Python tests passed, plus ten deterministic hard-layout
 checks in WebView2, 50 menu/action assertions, 25 form/event tab checks,
-45 docking/workspace checks and native designer/runtime anchor
+45 docking/workspace checks, 51 hierarchy checks and native designer/runtime anchor
 integration checks. Shell resizing and stacking isolation are checked at narrow
 and full-size window dimensions.
 Windows WebView2 startup, the bridge, real-control

@@ -97,4 +97,4 @@ def test_preview_and_runtime_use_the_same_event_api():
 
 def test_unknown_project_schema_is_rejected():
     with pytest.raises(ValueError, match='schema'):
-        deserialize_project({'schema_version': 2, 'project': {}})
+        deserialize_project({'schema_version': 3, 'project': {}})

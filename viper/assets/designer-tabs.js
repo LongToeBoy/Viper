@@ -37,10 +37,11 @@ class ViperDesignerTabs {
   }
   forms() {
     const root = this.callbacks.root();
-    return root ? [root, ...(root.windows || [])] : [];
+    return root?.windows || [];
   }
   reset() {
-    this.documents = this.forms().map(form => ({key: `form:${form.form_id}`, formId: form.form_id}));
+    const first = this.forms().find(form => form.form_id === this.callbacks.root()?.startup_window_id);
+    this.documents = first ? [{key: `form:${first.form_id}`, formId: first.form_id}] : [];
     this.active = this.documents[0] || null;
   }
   isEvents() { return !!this.active?.componentId; }
@@ -52,23 +53,28 @@ class ViperDesignerTabs {
     return component ? {form, component} : null;
   }
   activate(doc) {
-    if (!doc) return;
-    this.active = doc;
-    this.callbacks.activate(doc.formId);
-    if (doc.componentId) {
+    this.active = doc || null;
+    this.callbacks.activate(doc?.formId || null);
+    if (doc?.componentId) {
       this.loadEvent(true);
       this.source.focus();
     }
   }
   openEvents(formId, componentId) {
-    const key = `event:${formId}:${componentId}`;
+    const key = JSON.stringify(['event', formId, componentId]);
     let doc = this.documents.find(doc => doc.key === key);
     if (!doc) { doc = {key, formId, componentId}; this.documents.push(doc); }
     this.activate(doc);
   }
-  showForm(formId) { this.activate(this.documents.find(doc => doc.formId === formId && !doc.componentId)); }
+  showForm(formId) {
+    if (!this.forms().some(form => form.form_id === formId)) return;
+    let doc = this.documents.find(doc => doc.formId === formId && !doc.componentId);
+    if (!doc) { doc = {key: `form:${formId}`, formId}; this.documents.push(doc); }
+    this.activate(doc);
+  }
   close(doc) {
     const index = this.documents.indexOf(doc);
+    if (index < 0) return;
     this.documents.splice(index, 1);
     if (this.active === doc) this.activate(this.documents[Math.max(0, index - 1)]);
     else this.render();
@@ -92,17 +98,16 @@ class ViperDesignerTabs {
       button.setAttribute('aria-selected', String(doc === this.active)); button.tabIndex = doc === this.active ? 0 : -1;
       button.setAttribute('aria-controls', component ? 'event-editor' : 'design-viewport');
       button.onclick = () => this.activate(doc); tab.appendChild(button);
-      if (component) {
-        const close = document.createElement('button'); close.className = 'close-tab'; close.textContent = '×';
-        close.setAttribute('aria-label', `Close ${component.name} events`); close.onclick = () => this.close(doc);
-        tab.appendChild(close);
-      }
+      const close = document.createElement('button'); close.className = 'close-tab'; close.textContent = '×';
+      close.setAttribute('aria-label', `Close ${component ? `${component.name} events` : form.window.name}`); close.onclick = () => this.close(doc);
+      tab.appendChild(close);
       this.bar.appendChild(tab);
       if (doc === this.active) document.getElementById(component ? 'event-editor' : 'design-viewport').setAttribute('aria-labelledby', button.id);
     });
     this.editor.hidden = !this.isEvents();
     document.getElementById('add-window').disabled = !this.callbacks.root() || this.callbacks.preview();
-    document.getElementById('design-viewport').hidden = this.isEvents();
+    document.getElementById('design-viewport').hidden = this.isEvents() || !this.active;
+    document.getElementById('document-empty').hidden = !!this.active;
     document.getElementById('workspace').classList.toggle('workspace-events', this.isEvents());
     if (this.isEvents()) this.loadEvent();
   }

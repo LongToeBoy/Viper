@@ -13,10 +13,11 @@ from test_window import icon_data
 
 app, host, errors = ViperApp(), WindowsHost(), []
 runtime_mode = '--runtime' in sys.argv
-runtime_form = app.project
+runtime_form = app.project.get_window()
 if runtime_mode and '--secondary' in sys.argv:
-    runtime_form = WindowDefinition.from_dict({**app.project.to_dict(), 'form_id': 'secondary'})
+    runtime_form = WindowDefinition.from_dict({**runtime_form.to_dict(), 'form_id': 'secondary'})
     app.project.windows.append(runtime_form)
+    app.project.startup_window_id = 'secondary'
 if runtime_mode:
     runtime_form.window.title = 'Form1'
     runtime_form.window.icon = icon_data()
@@ -86,6 +87,11 @@ def verify():
                                     lambda value: (workspace_results.append(value), workspace_ready.set()))
             assert workspace_ready.wait(30), 'Docking checks did not finish'
             assert workspace_results[0].get('passed', 0) == 45 and 'error' not in workspace_results[0], workspace_results
+            hierarchy_ready, hierarchy_results = threading.Event(), []
+            host._window.evaluate_js((Path(__file__).parent / 'designer_hierarchy_cases.js').read_text(encoding='utf-8'),
+                                    lambda value: (hierarchy_results.append(value), hierarchy_ready.set()))
+            assert hierarchy_ready.wait(30), 'Project hierarchy checks did not finish'
+            assert hierarchy_results[0].get('passed', 0) == 51 and 'error' not in hierarchy_results[0], hierarchy_results
             for width, height in [(560, 430), (240, 260), (1280, 820)]:
                 host.resize(width, height)
                 threading.Event().wait(.2)
@@ -144,7 +150,7 @@ def verify():
             assert abs(result['stretchWidth'] - result['oldWidth'] * 1.5) < .1 and result['noEditing'], result
             saved = threading.Event()
             host._window.evaluate_js("sync().then(() => viperHost.request('bootstrap'))", lambda value: (values.append(value), saved.set()))
-            assert saved.wait(15) and len(values[-1]['project']['links']) == 1
+            assert saved.wait(15) and len(values[-1]['project']['windows'][0]['links']) == 1
             assert 'springs' not in values[-1]['project']
             host._window.evaluate_js("project = JSON.parse(JSON.stringify(project)); render()")
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
@@ -152,6 +158,7 @@ def verify():
                           'anchor_cases': cases['passed'], 'menu_checks': 0 if runtime_mode else menu_results[0]['passed'],
                           'tab_checks': 0 if runtime_mode else tabs_results[0]['passed'],
                           'workspace_checks': 0 if runtime_mode else workspace_results[0]['passed'],
+                          'hierarchy_checks': 0 if runtime_mode else hierarchy_results[0]['passed'],
                           'checks': 'passed'}))
     except Exception as exc:
         import traceback
@@ -163,7 +170,7 @@ def verify():
 
 threading.Thread(target=verify, daemon=True).start()
 if runtime_mode:
-    Runtime(app.project, window_id=runtime_form.form_id).launch(host)
+    Runtime(app.project).launch(host)
 else:
     app.launch(host)
 if errors:

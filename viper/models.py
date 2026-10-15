@@ -241,35 +241,111 @@ class WindowDefinition:
         return project
 
 
-@dataclass
-class Project(WindowDefinition):
-    """The original fields define the startup form; extra forms share its model."""
+@dataclass(init=False)
+class Project:
+    """Project metadata owns sibling windows and their shared event source."""
 
-    windows: list[WindowDefinition] = field(default_factory=list)
-    event_code: dict[str, str] = field(default_factory=dict)
+    name: str
+    description: str
+    version: int
+    windows: list[WindowDefinition]
+    startup_window_id: str | None
+    event_code: dict[str, str]
 
-    def __post_init__(self):
-        super().__post_init__()
-        form_ids = [self.form_id, *(form.form_id for form in self.windows)]
-        if self.form_id != 'main' or any(not key for key in form_ids) or len(set(form_ids)) != len(form_ids):
-            raise ValueError('Window IDs must be unique; the startup window ID is main')
+    def __init__(self, name="Untitled Project", description="", version=1, *, windows=None,
+                 startup_window_id=None, event_code=None, **startup_settings):
+        self.name, self.description, self.version = name, description, version
+        # Keep the original Python startup-form constructor options usable.
+        if windows is None or startup_settings:
+            first = WindowDefinition(name=name, **startup_settings)
+            self.windows = [first, *(windows or [])]
+        else:
+            self.windows = list(windows)
+        self.startup_window_id = startup_window_id if startup_window_id is not None else (
+            self.windows[0].form_id if self.windows else None)
+        self.event_code = dict(event_code or {})
+        ids = [form.form_id for form in self.windows]
+        if any(not isinstance(key, str) or not key for key in ids) or len(set(ids)) != len(ids):
+            raise ValueError('Window IDs must be nonempty and unique')
+        if self.startup_window_id is not None and self.startup_window_id not in ids:
+            raise ValueError('Startup window must belong to the project')
         if not all(isinstance(key, str) and isinstance(source, str) for key, source in self.event_code.items()):
             raise ValueError('Event code must map handler names to Python source strings')
 
-    def get_window(self, form_id='main') -> WindowDefinition:
-        if form_id == self.form_id:
-            return self
+    def get_window(self, form_id=None) -> WindowDefinition:
+        if form_id is None:
+            form_id = self.startup_window_id
+            if form_id is None:
+                raise ValueError('Project has no startup window')
         for form in self.windows:
             if form.form_id == form_id:
                 return form
         raise ValueError(f'Unknown window: {form_id}')
 
+    def delete_window(self, form_id):
+        self.get_window(form_id)
+        self.windows = [form for form in self.windows if form.form_id != form_id]
+        if self.startup_window_id == form_id:
+            self.startup_window_id = self.windows[0].form_id if self.windows else None
+        # Source may be shared, or no longer mapped. Never delete user-authored code.
+
     def to_dict(self):
-        return {**super().to_dict(), 'windows': [form.to_dict() for form in self.windows],
-                'event_code': dict(self.event_code)}
+        return {'name': self.name, 'description': self.description, 'version': self.version,
+                'windows': [form.to_dict() for form in self.windows],
+                'startup_window_id': self.startup_window_id, 'event_code': dict(self.event_code)}
 
     @classmethod
     def from_dict(cls, data):
-        form = WindowDefinition.from_dict(data)
-        return cls(**vars(form), windows=[WindowDefinition.from_dict(item) for item in data.get('windows', [])],
-                   event_code=dict(data.get('event_code', {})))
+        legacy = any(key in data for key in ('components', 'window', 'canvas_width', 'form_id')) or 'windows' not in data
+        windows = [WindowDefinition.from_dict(item) for item in data.get('windows', [])]
+        if legacy:
+            windows.insert(0, WindowDefinition.from_dict(data))
+        return cls(name=str(data.get('name', 'Untitled Project')), description=str(data.get('description', '')),
+                   version=int(data.get('version', 1)), windows=windows,
+                   startup_window_id=data.get('startup_window_id'), event_code=dict(data.get('event_code', {})))
+
+    # Compatibility accessors for existing Python launchers. Serialized project
+    # ownership always lives in windows; these delegate to the chosen startup form.
+    @property
+    def form_id(self):
+        return self.get_window().form_id
+
+    @property
+    def window(self):
+        return self.get_window().window
+
+    @window.setter
+    def window(self, value):
+        self.get_window().window = value
+
+    @property
+    def components(self):
+        return self.get_window().components
+
+    @components.setter
+    def components(self, value):
+        self.get_window().components = value
+
+    @property
+    def links(self):
+        return self.get_window().links
+
+    @links.setter
+    def links(self, value):
+        self.get_window().links = value
+
+    @property
+    def canvas_width(self):
+        return self.get_window().canvas_width
+
+    @canvas_width.setter
+    def canvas_width(self, value):
+        self.get_window().canvas_width = value
+
+    @property
+    def canvas_height(self):
+        return self.get_window().canvas_height
+
+    @canvas_height.setter
+    def canvas_height(self, value):
+        self.get_window().canvas_height = value

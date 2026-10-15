@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 from threading import RLock
 from .component_registry import COMPONENT_LIBRARY
-from .models import Project
+from .models import Project, WindowDefinition
 from .hosts.base import Reply
 
 if TYPE_CHECKING:
@@ -32,7 +32,8 @@ class Bridge:
                 command = message["command"]
                 payload = message.get("payload") or {}
                 if command == "bootstrap":
-                    success({"project": self.app.project.to_dict(), "library": COMPONENT_LIBRARY})
+                    success({"project": self.app.project.to_dict(), "library": COMPONENT_LIBRARY,
+                             'window_defaults': WindowDefinition().to_dict()})
                 elif command == "update":
                     self.app.replace_project(Project.from_dict(payload["project"]))
                     self._runtime = None
@@ -65,7 +66,7 @@ class Bridge:
                     self.app.host.file_dialog(command == "save", selected)
                 elif command == "run":
                     from .runtime import start_project
-                    start_project(self.app.project, payload.get('window_id', 'main'))
+                    start_project(self.app.project, payload.get('window_id'))
                     success({"started": True})
                 elif command == "event":
                     from .runtime import Runtime

@@ -24,14 +24,14 @@ def test_forms_and_unfinished_source_round_trip(tmp_path):
     restored = load_project(save_project(project, tmp_path / 'project.json'))
     assert restored.windows[0].to_dict() == form.to_dict()
     assert restored.event_code['user_handler'] == source
-    assert restored.get_window('main') is restored
+    assert restored.get_window('settings') is restored.windows[0]
     legacy = Project.from_dict({'name': 'Legacy'})
-    assert legacy.windows == [] and legacy.event_code == {} and legacy.form_id == 'main'
+    assert len(legacy.windows) == 1 and legacy.event_code == {} and legacy.startup_window_id == 'main'
 
 
 def test_form_identity_and_constraints_are_validated():
     with pytest.raises(ValueError, match='Window IDs'):
-        Project(windows=[WindowDefinition()])
+        Project(windows=[WindowDefinition(), WindowDefinition()])
     with pytest.raises(ValueError, match='Window IDs'):
         Project(windows=[WindowDefinition(form_id='a'), WindowDefinition(form_id='a')])
     with pytest.raises(ValueError, match='minimum'):
@@ -96,7 +96,7 @@ def test_runtime_opens_selected_form_with_its_own_properties():
 def test_run_snapshots_all_forms_and_source_for_the_selected_window(monkeypatch):
     from viper import runtime
 
-    project = Project(windows=[WindowDefinition(form_id='second')], event_code={'user': '# User source\n'})
+    project = Project(windows=[WindowDefinition(), WindowDefinition(form_id='second')], event_code={'user': '# User source\n'})
     captured = {}
 
     def launch(args, cwd):
@@ -113,6 +113,7 @@ def test_run_snapshots_all_forms_and_source_for_the_selected_window(monkeypatch)
     app.bridge.receive({'id': 1, 'command': 'run', 'payload': {'window_id': 'second'}}, replies.append)
     assert replies == [{'id': 1, 'result': {'started': True}}]
     assert captured['args'][-2:] == ['--window', 'second']
-    assert captured['project'].windows[0].form_id == 'second'
+    assert [form.form_id for form in captured['project'].windows] == ['main', 'second']
+    assert captured['project'].startup_window_id == 'main'
     assert captured['project'].event_code == project.event_code
     assert captured['cwd'] == Path(runtime.__file__).resolve().parent.parent

@@ -51,6 +51,17 @@ class ViperDesignerWorkspace {
     }
     // A newly registered tool can join an existing workspace without resetting it.
     for (const definition of definitions) if (!used.has(definition.id)) {
+      if (definition.visible === true) {
+        const location = definition.location || 'left';
+        let group = state.groups.find(group => group.location === location);
+        if (!group) {
+          let id = `dock-${location}`, suffix = 2;
+          while (state.groups.some(group => group.id === id) || state.closed.some(record => record.group === id)) id = `dock-${location}-${suffix++}`;
+          group = {id, location, tools: [], active: definition.id, rect: {x: 40, y: 40, width: 300, height: 400}};
+          state.groups.push(group);
+        }
+        group.tools.push(definition.id); group.active = definition.id; continue;
+      }
       state.closed.push({tool: definition.id, group: `dock-${definition.location || 'left'}`,
         location: definition.location || 'left', rect: {x: 40, y: 40, width: 300, height: 400}});
     }

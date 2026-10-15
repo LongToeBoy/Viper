@@ -26,14 +26,14 @@ def test_links_and_modes_round_trip():
 @pytest.mark.parametrize('changes', [{'distance_x': float('nan')}, {'axis': 'bad'},
     {'a': {'body': 'missing', 'edge': 'left'}}, {'a': {'body': '$window', 'edge': 'center'}}])
 def test_invalid_link_is_rejected(changes):
-    data = ViperApp().project.to_dict()
+    data = ViperApp().project.get_window().to_dict()
     data['links'] = [link('$window', data['components'][0]['id'], **changes)]
     with pytest.raises(ValueError):
         Project.from_dict(data)
 
 
 def test_dependency_cycle_is_rejected():
-    data = ViperApp().project.to_dict()
+    data = ViperApp().project.get_window().to_dict()
     a, b = [c['id'] for c in data['components'][:2]]
     data['links'] = [link(a, b), link(b, a)]
     with pytest.raises(ValueError, match='cycle'):
@@ -41,7 +41,7 @@ def test_dependency_cycle_is_rejected():
 
 
 def test_previous_project_keeps_rectangles_and_discards_dynamics():
-    data = ViperApp().project.to_dict()
+    data = ViperApp().project.get_window().to_dict()
     data['canvas_width'] = 800
     data['components'][0]['physics'] = {'x': 70, 'y': 80, 'width': 100, 'height': 50, 'mass': 2, 'pinned': False}
     data['components'][0].pop('box')

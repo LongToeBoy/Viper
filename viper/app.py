@@ -17,7 +17,8 @@ class ViperApp:
 
     def __init__(self, project: Project | None = None) -> None:
         self.project = project or self.create_demo_project()
-        self.layout_engine = RelativeLayoutEngine(self.project.canvas_width, self.project.canvas_height)
+        self.layout_engine = RelativeLayoutEngine(self.project.canvas_width if self.project.windows else 960,
+                                                  self.project.canvas_height if self.project.windows else 640)
         self.host: NativeHost | None = None
         self.handlers: dict[str, Any] = {}
         self.bridge = Bridge(self)
@@ -38,15 +39,16 @@ class ViperApp:
 
     def replace_project(self, project: Project) -> Project:
         self.project = project
-        self.layout_engine = RelativeLayoutEngine(self.project.canvas_width, self.project.canvas_height)
+        self.layout_engine = RelativeLayoutEngine(self.project.canvas_width if self.project.windows else 960,
+                                                  self.project.canvas_height if self.project.windows else 640)
         return self.project
 
     def save(self, path: str | Path) -> Path:
         return save_project(self.project, path)
 
-    def add_component(self, component_type: str, **kwargs: Any) -> Component:
+    def add_component(self, component_type: str, *, window_id=None, **kwargs: Any) -> Component:
         component = create_component(component_type, **kwargs)
-        self.project.components.append(component)
+        self.project.get_window(window_id).components.append(component)
         return component
 
     def launch(self, host: NativeHost | None = None) -> None:
@@ -54,4 +56,4 @@ class ViperApp:
         self.host.run(DESIGNER_INTERFACE, self.bridge.receive, WindowOptions())
 
     def __repr__(self) -> str:
-        return f"ViperApp(project={self.project.name}, components={len(self.project.components)})"
+        return f"ViperApp(project={self.project.name}, components={sum(len(form.components) for form in self.project.windows)})"

@@ -1,6 +1,8 @@
 /* Designer command composition; the reusable menu code has no project logic. */
 function createViperDesignerChrome(actions, commands, state, preferences) {
-  const editing = () => state.hasProject() && !state.preview() && !state.events();
+  const rootEditing = () => state.hasProject() && !state.preview();
+  const windowEditing = () => rootEditing() && state.hasWindow() && !state.events();
+  const editing = () => windowEditing() && !state.projectSelected();
   const selection = () => editing() && state.hasSelection();
   const register = (id, name, callback, options = {}) => actions.register({id, name, callback, ...options});
   const future = (id, name, reason, shortcut = '', icon = '') => register(id, name, () => {}, {enabled: false, reason, shortcut, icon});
@@ -20,10 +22,13 @@ function createViperDesignerChrome(actions, commands, state, preferences) {
   future('copy', 'Copy', 'Element clipboard is not implemented', 'Ctrl+C');
   future('paste', 'Paste', 'Element clipboard is not implemented', 'Ctrl+V');
   register('duplicate', 'Duplicate', commands.duplicate, {shortcut: 'Ctrl+D', enabled: selection});
-  register('delete', 'Delete', commands.remove, {shortcut: 'Delete', enabled: selection});
+  register('delete', 'Delete', commands.remove, {shortcut: 'Delete', enabled: editing});
+  register('rename-selection', 'Rename', commands.rename, {shortcut: 'F2', enabled: () => rootEditing() && (!state.events() || state.projectSelected())});
+  register('set-startup-window', 'Set as Startup Window', commands.setStartupWindow,
+    {enabled: () => editing() && !state.hasSelection(), checked: state.startupSelected});
   future('select-all', 'Select All', 'Multiple element selection is not implemented', 'Ctrl+A');
   register('new-window', 'New Window', commands.newWindow, {enabled: () => state.hasProject() && !state.preview()});
-  register('select-window', 'Window Properties', commands.windowProperties, {enabled: editing});
+  register('select-window', 'Window Properties', commands.windowProperties, {enabled: windowEditing});
   const widgets = {name: 'Widgets and Controls', items: []};
   for (const item of document.querySelectorAll('.tool-item')) {
     const id = `insert-${item.dataset.kind}`;
@@ -48,25 +53,25 @@ function createViperDesignerChrome(actions, commands, state, preferences) {
   register('properties-panel', 'Inspector', () => commands.toggleTool('inspector'), {checked: () => state.toolOpen('inspector')});
   register('components-panel', 'Components', () => commands.toggleTool('components'), {checked: () => state.toolOpen('components')});
   register('reset-workspace', 'Reset Workspace', commands.resetWorkspace);
-  future('element-hierarchy', 'Element Hierarchy', 'The hierarchy panel is not implemented');
+  register('element-hierarchy', 'Project Explorer', () => commands.toggleTool('project'), {checked: () => state.toolOpen('project')});
   const zoom = {name: 'Zoom', items: ['zoom-in', 'zoom-out', 'zoom-reset']};
-  register('zoom-in', 'Zoom In', () => commands.zoom(1.2), {shortcut: 'Ctrl+=', enabled: state.hasProject});
-  register('zoom-out', 'Zoom Out', () => commands.zoom(1 / 1.2), {shortcut: 'Ctrl+-', enabled: state.hasProject});
-  register('zoom-reset', 'Reset / Fit Window', () => commands.zoom(null), {shortcut: 'Ctrl+0', enabled: state.hasProject});
-  register('preview', 'Preview', commands.preview, {icon: 'preview', shortcut: 'F6', enabled: state.hasProject, checked: state.preview, allowInInput: true});
-  register('run', 'Run Application', commands.run, {icon: 'run', toolbarLabel: 'Run', shortcut: 'F5', enabled: state.hasProject, allowInInput: true});
+  register('zoom-in', 'Zoom In', () => commands.zoom(1.2), {shortcut: 'Ctrl+=', enabled: state.hasWindow});
+  register('zoom-out', 'Zoom Out', () => commands.zoom(1 / 1.2), {shortcut: 'Ctrl+-', enabled: state.hasWindow});
+  register('zoom-reset', 'Reset / Fit Window', () => commands.zoom(null), {shortcut: 'Ctrl+0', enabled: state.hasWindow});
+  register('preview', 'Preview', commands.preview, {icon: 'preview', shortcut: 'F6', enabled: state.hasWindows, checked: state.preview, allowInInput: true});
+  register('run', 'Run Application', commands.run, {icon: 'run', toolbarLabel: 'Run', shortcut: 'F5', enabled: state.hasWindows, allowInInput: true});
   register('stop', 'Stop Preview', commands.preview, {shortcut: 'Shift+F5', enabled: state.preview, allowInInput: true});
   future('build', 'Build / Package', 'Application packaging is not implemented');
-  register('show-properties', 'Properties', commands.properties, {enabled: selection});
+  register('show-properties', 'Properties', commands.properties, {enabled: rootEditing});
   register('edit-events', 'Edit Events', commands.events, {enabled: selection});
   const definitions = [
     {name: 'File', items: ['new-project', 'open-project', null, 'save-project', 'save-as', null, 'recent-projects']},
-    {name: 'Edit', items: ['undo', 'redo', null, 'cut', 'copy', 'paste', null, 'duplicate', 'delete', 'select-all']},
+    {name: 'Edit', items: ['undo', 'redo', null, 'cut', 'copy', 'paste', null, 'rename-selection', 'duplicate', 'delete', 'select-all']},
     {name: 'Insert', items: ['new-window', widgets]},
     {name: 'Layout', items: [align, distribute, null, 'snap-grid', 'snap-elements', null, 'connect-links', 'grid-settings']},
     {name: 'View', items: ['show-grid', 'show-anchors', null, 'properties-panel', 'element-hierarchy', 'select-window', null, zoom]},
     {name: 'Run', items: ['preview', 'run', 'stop', null, 'build']},
-    {name: 'Windows', items: ['components-panel', 'properties-panel', null, 'reset-workspace']}
+    {name: 'Windows', items: ['element-hierarchy', 'components-panel', 'properties-panel', null, 'reset-workspace']}
   ];
   const menus = new ViperMenus(actions, document.getElementById('application-chrome'), definitions,
     ['save-project', null, 'undo', 'redo', null, 'snap-grid', 'snap-elements', null, 'preview', 'run']);

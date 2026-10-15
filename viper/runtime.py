@@ -15,11 +15,11 @@ from .serializer import load_project, save_project
 
 
 class Runtime:
-    def __init__(self, project: Project, handlers: dict[str, Callable] | None = None, window_id='main'):
+    def __init__(self, project: Project, handlers: dict[str, Callable] | None = None, window_id=None):
         self.project = project
         self.handlers = handlers if handlers is not None else {}
-        self.window_id = window_id
         self.form = project.get_window(window_id)
+        self.window_id = self.form.form_id
         self._compiled_handlers = {}
 
     def handler(self, name):
@@ -44,7 +44,9 @@ class Runtime:
             elif message["command"] == "event":
                 payload = message["payload"]
                 form = self.project.get_window(payload.get('window_id', self.window_id))
-                component = next(c for c in form.components if c.id == payload["component_id"])
+                component = next((c for c in form.components if c.id == payload["component_id"]), None)
+                if component is None:
+                    raise ValueError(f'Unknown component in window {form.form_id}: {payload["component_id"]}')
                 name = component.event_handlers.get(payload["event"])
                 handler = self.handler(name)
                 result = {"handled": bool(handler), "value": handler(payload) if handler else None}
@@ -64,9 +66,9 @@ class Runtime:
             background_color=self.form.window.background_color))
 
 
-def start_project(project: Project, window_id='main') -> subprocess.Popen:
+def start_project(project: Project, window_id=None) -> subprocess.Popen:
     """Run an unsaved snapshot without depending on the user's working directory."""
-    project.get_window(window_id)
+    window_id = project.get_window(window_id).form_id
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as snapshot:
         path = Path(snapshot.name)
     try:
@@ -82,7 +84,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run a Viper interface")
     parser.add_argument("project", type=Path)
     parser.add_argument("--temporary", action="store_true")
-    parser.add_argument('--window', default='main', help='Form ID to open (defaults to the startup form)')
+    parser.add_argument('--window', help='Form ID to open (defaults to the startup form)')
     args = parser.parse_args()
     try:
         project = load_project(args.project)

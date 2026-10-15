@@ -1,6 +1,6 @@
 /* Run inside the real designer WebView; restore project and editor preferences. */
 (async () => {
-  const originalProject = clone(project), originalPreferences = {...preferences.values};
+  const originalProject = clone(projectRoot), originalPreferences = {...preferences.values};
   const originalWorkspace = panels.snapshot();
   const originalRequest = viperHost.request, originalConfirm = window.confirm;
   let checks = 0;
@@ -20,7 +20,7 @@
     try { isolated.register({id: 'disabled', name: 'Duplicate'}); } catch (_) { duplicateRejected = true; }
     assert(duplicateRejected, 'Action IDs are unique');
     selectedId = null; render();
-    assert(!actions.state('duplicate').enabled && !actions.state('delete').enabled, 'Selection controls enabled state');
+    assert(!actions.state('duplicate').enabled && actions.state('delete').enabled, 'Selection controls enabled state');
     assert(!actions.state('undo').enabled && !actions.state('align-left').enabled && actions.state('new-window').enabled,
       'Unsupported commands remain disabled and new windows are available');
 
@@ -41,7 +41,7 @@
     assert(!key(nameInput, 'Delete').defaultPrevented && project.components.length === count, 'Delete preserves input editing');
     assert(!key(nameInput, 'z', {ctrlKey: true}).defaultPrevented, 'Native text undo remains available');
     key(canvas, 'Delete');
-    assert(project.components.length === count - 1 && !actions.state('delete').enabled, 'Keyboard deletion updates all action state');
+    assert(project.components.length === count - 1 && actions.state('delete').enabled, 'Keyboard deletion updates all action state');
 
     selectComponent(component.id);
     const wrapper = canvas.querySelector('.component-wrapper.selected');
@@ -128,12 +128,12 @@
     menus.buttons[0].click();
     assert(menus.popups[0].node.getBoundingClientRect().top >= chromeRect.bottom, 'Dropdown respects chrome boundary');
     menus.close(false);
-    const currentProject = project; project = undefined; render();
+    const currentProject = project, currentRoot = projectRoot; project = undefined; projectRoot = undefined; render();
     assert(!actions.state('save-project').enabled && actions.state('new-project').enabled && actions.state('open-project').enabled,
       'Chrome works without a project');
     menus.buttons[4].click();
     assert(menus.popups.length === 1, 'View menu works without a project'); menus.close(false);
-    project = currentProject; render();
+    projectRoot = currentRoot; project = currentProject; render();
 
     await queue;
     const requests = [];
@@ -153,10 +153,10 @@
     document.getElementById('run').click(); await queue;
     assert(requests.slice(-2).map(r => r.command).join(',') === 'update,run', 'Run sends the same synchronized project');
     key(nameInput, 'o', {ctrlKey: true}); await queue;
-    assert(project.name === 'Opened menu project' && !selectedId, 'Open shortcut uses project replacement');
+    assert(projectRoot.name === 'Opened menu project' && !selectedId, 'Open shortcut uses project replacement');
     actions.execute('preview'); key(canvas, 'n', {ctrlKey: true}); await queue;
-    assert(project.name === 'New menu project' && !preview && !selectedId, 'New restores an editable project');
-    assert(originalProject.components[0].event_handlers && requests.every(r => r.command !== 'event'), 'Commands preserve event dispatch boundary');
+    assert(projectRoot.name === 'New menu project' && !preview && !selectedId, 'New restores an editable project');
+    assert(originalProject.windows[0].components[0].event_handlers && requests.every(r => r.command !== 'event'), 'Commands preserve event dispatch boundary');
     return {passed: checks};
   } catch (error) { return {passed: checks, error: error.message, stack: error.stack}; }
   finally {

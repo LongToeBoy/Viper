@@ -47,7 +47,7 @@
     const mainCount = first.components.length;
     document.getElementById('add-window').click();
     const second = project;
-    assert(projectRoot.windows.length === 1 && second !== first && second.components.length === 0, 'Plus creates a separate empty form');
+    assert(projectRoot.windows.length === 2 && second !== first && second.components.length === 0, 'Plus creates a separate empty form');
     assert(document.querySelectorAll('#document-tabs [role=tab]').length === 3, 'New form gets its own tab');
     add('text_input');
     const inputComponent = selected();
@@ -72,12 +72,12 @@
     assert(preview && !tabs.isEvents() && !canvas.querySelector('.component-wrapper') && canvas.querySelector('input.component'), 'Preview from Events shows the owning form controls');
     actions.execute('stop');
     tabs.showForm('main');
-    assert(project === first && first.components.length === mainCount && projectRoot.windows[0].components.length === 1, 'Tab switch preserves both forms');
+    assert(project === first && first.components.length === mainCount && projectRoot.windows[1].components.length === 1, 'Tab switch preserves both forms');
     await sync();
     const saved = (await viperHost.request('bootstrap')).project;
-    assert(saved.windows.length === 1 && saved.windows[0].window.title === 'Second form title' && saved.event_code[handlerName] === authored, 'Bridge snapshot contains every form and verbatim source');
+    assert(saved.windows.length === 2 && saved.windows[1].window.title === 'Second form title' && saved.event_code[handlerName] === authored, 'Bridge snapshot contains every form and verbatim source');
     replaceProject(saved);
-    assert(document.querySelectorAll('#document-tabs [role=tab]').length === 2 && !tabs.isEvents(), 'Reopening restores form tabs with only the main form active');
+    assert(document.querySelectorAll('#document-tabs [role=tab]').length === 1 && !tabs.isEvents(), 'Reopening opens only the startup form');
     openElementEvents(project.components.find(c => c.id === component.id).id);
     assert(source.value === authored, 'Reopened project restores source without regeneration');
     const focusTab = document.querySelector('#document-tabs [role=tab][aria-selected=true]'); focusTab.focus();

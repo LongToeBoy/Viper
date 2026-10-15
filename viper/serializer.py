@@ -9,7 +9,7 @@ from .models import Project
 
 def serialize_project(project: Project) -> dict[str, Any]:
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "project": project.to_dict(),
     }
 
@@ -17,7 +17,7 @@ def serialize_project(project: Project) -> dict[str, Any]:
 def deserialize_project(payload: dict[str, Any]) -> Project:
     if not isinstance(payload, dict):
         raise ValueError("Project JSON must be an object")
-    if payload.get("schema_version", 1) != 1:
+    if payload.get("schema_version", 1) not in (1, 2):
         raise ValueError("Unsupported project schema version")
     project_data = payload.get("project", payload)
     return Project.from_dict(project_data)

@@ -233,7 +233,7 @@ input {
 .inspector input, .inspector select { width: 100%; min-width: 0; }
 .inspector input[type="checkbox"] { width: auto; }
 .workspace-empty .window-stage { display: none; }
-.workspace-empty .toolbox, .workspace-empty .inspector { visibility: hidden; }
+.workspace-empty .toolbox { opacity: .5; }
 .menu-bar { display: flex; align-items: stretch; min-width: 0; border-bottom: 1px solid var(--line); padding: 0 5px; }
 .menu-heading { background: transparent; color: var(--text); border: 0; padding: 0 12px; font: inherit; font-size: 12px; cursor: pointer; }
 .menu-heading:hover, .menu-heading[aria-expanded="true"] { background: var(--panel-alt); }
@@ -317,6 +317,23 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   border-radius: 6px; background: #173b65cc; color: white; font-size: 12px; pointer-events: none; }
 .dock-target.selected { border-style: solid; background: #296eb8e8; box-shadow: 0 0 0 2px #8ac7ff; }
 .workspace-dragging, .workspace-dragging * { user-select: none; -webkit-user-select: none; }
+.project-explorer { padding: 8px 4px; }
+.explorer-tools { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 4px 8px; }
+.explorer-tools button { font-size: 11px; padding: 5px 6px; }
+#project-tree, #project-tree [role=group] { list-style: none; margin: 0; padding: 0; }
+#project-tree [role=treeitem] { outline: none; }
+.explorer-row { display: flex; align-items: center; gap: 4px; min-height: 29px; padding-right: 4px;
+  cursor: pointer; font-size: 12px; border: 1px solid transparent; user-select: none; -webkit-user-select: none; }
+[role=treeitem][aria-selected=true] > .explorer-row { background: #254571; }
+[role=treeitem]:focus-visible > .explorer-row { border-color: var(--accent); }
+.explorer-row:hover { background: #20324d; }
+.tree-disclosure { flex: 0 0 14px; text-align: center; cursor: pointer; color: var(--muted); }
+.tree-icon { flex: 0 0 15px; color: #89b9fb; text-align: center; }
+.tree-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-badge { margin-left: auto; font-size: 10px; padding-left: 4px; color: var(--muted); }
+.document-empty { flex: 1; padding: 32px; color: var(--muted); overflow: auto; }
+#document-empty[hidden] { display: none; }
+#project-description { width: 100%; resize: vertical; padding: 8px; background: var(--panel-alt); color: var(--text); border: 1px solid var(--line); border-radius: 6px; }
 @media (max-width: 360px) {
   .menu-bar { padding: 0 2px; }
   .menu-heading { flex: 1; min-width: 0; padding: 0 2px; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }

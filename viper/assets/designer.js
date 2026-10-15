@@ -1,7 +1,7 @@
 const canvas = document.getElementById('canvas');
 
 let project, library, selectedId, preview = false;
-let projectRoot;
+let projectRoot, windowDefaults, projectSelected = false;
 const formViews = new Map();
 let queue = Promise.resolve();
 const status = document.getElementById('status');
@@ -52,10 +52,13 @@ function renderWindow() {
       y: (viewport.clientHeight - height * windowScale) / 2};
   }
   stage.style.left = `${stagePosition.x}px`; stage.style.top = `${stagePosition.y}px`;
-  frame.classList.toggle('selected', !selectedId && !preview);
-  document.getElementById('window-resize').hidden = preview;
+  frame.classList.toggle('selected', !selectedId && !projectSelected && !preview);
+  document.getElementById('window-resize').hidden = preview || projectSelected;
 }
-function selectWindow() { if (preview || !project) return; selectedId = null; render(); }
+function selectWindow() {
+  if (preview || !project) return;
+  selectedId = null; projectSelected = false; explorer.reveal(hierarchySelection()); render();
+}
 document.getElementById('window-titlebar').onclick = selectWindow;
 document.getElementById('window-titlebar').onkeydown = event => {
   if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectWindow(); }
@@ -104,22 +107,32 @@ viewport.addEventListener('wheel', event => {
 }, {passive: false});
 const clone = value => JSON.parse(JSON.stringify(value));
 const id = () => `component_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-const selected = () => project?.components.find(c => c.id === selectedId);
+const selected = () => !projectSelected && project?.components.find(c => c.id === selectedId);
+const hierarchySelection = () => projectSelected || !project ? {kind: 'project'} : selectedId ?
+  {kind: 'component', formId: project.form_id, componentId: selectedId} : {kind: 'window', formId: project.form_id};
 function enqueue(action) {
   queue = queue.then(action).catch(error => { status.textContent = error.message; });
   return queue;
 }
 function sync() {
-  // The main form retains the legacy project fields; edits to every form share one save.
-  if (project?.form_id === 'main') projectRoot = project;
   const snapshot = clone(projectRoot);
   return enqueue(() => viperHost.request('update', {project: snapshot}));
 }
 function inspector() {
-  if (!project) return;
+  if (!projectRoot) return;
+  const rootSelected = projectSelected || !project;
+  document.getElementById('project-properties').hidden = !rootSelected;
+  for (const field of ['name', 'description']) {
+    const input = document.getElementById(`project-${field}`); input.value = projectRoot[field]; input.disabled = preview;
+  }
+  const startup = document.getElementById('project-startup');
+  startup.replaceChildren(...projectRoot.windows.map(form => new Option(form.window.name, form.form_id)));
+  if (!projectRoot.windows.length) startup.appendChild(new Option('No windows', ''));
+  startup.value = projectRoot.startup_window_id || ''; startup.disabled = preview || !projectRoot.windows.length;
   const component = selected();
-  document.getElementById('window-properties').hidden = !!component;
-  document.getElementById('component-properties').hidden = !component;
+  document.getElementById('window-properties').hidden = rootSelected || !!component;
+  document.getElementById('component-properties').hidden = rootSelected || !component;
+  if (!project) return;
   for (const [field, property] of Object.entries(windowFields)) {
     const input = document.getElementById(`window-${field}`);
     if (input.type === 'checkbox') input.checked = project.window[property];
@@ -141,9 +154,10 @@ function inspector() {
 }
 function render() {
   workspace.classList.toggle('workspace-empty', !project);
-  if (!project) { canvas.replaceChildren(); actions.refresh(); return; }
   tabs.render();
-  document.getElementById('link-properties').hidden = tabs.isEvents();
+  explorer.render();
+  document.getElementById('link-properties').hidden = !project || projectSelected || tabs.isEvents();
+  if (!project) { canvas.replaceChildren(); inspector(); actions.refresh(); return; }
   if (tabs.isEvents()) { inspector(); actions.refresh(); return; }
   renderWindow();
   canvas.replaceChildren();
@@ -183,19 +197,20 @@ function render() {
   actions.refresh();
 }
 function selectComponent(componentId) {
-  selectedId = componentId; inspector(); frame.classList.remove('selected');
+  if (preview || !project?.components.some(component => component.id === componentId)) return;
+  selectedId = componentId; projectSelected = false; inspector(); frame.classList.remove('selected');
   canvas.querySelectorAll('.component-wrapper').forEach(node =>
     node.classList.toggle('selected', node.dataset.id === componentId));
-  actions.refresh();
+  explorer.reveal(hierarchySelection()); explorer.render(); actions.refresh();
 }
 function add(kind, x, y) {
-  if (preview || tabs.isEvents() || !project || !library?.[kind]) return;
+  if (preview || projectSelected || tabs.isEvents() || !project || !library?.[kind]) return;
   const component = clone(library[kind]);
   component.id = id(); component.visible = true; component.enabled = true; component.event_handlers = {};
   component.layout.min_width = 80; component.layout.min_height = 32;
   if (x !== undefined) { component.layout.x = Math.min(x, 100 - component.layout.width);
     component.layout.y = Math.min(y, 100 - component.layout.height); }
-  project.components.push(component); selectedId = component.id; render(); sync();
+  project.components.push(component); selectedId = component.id; explorer.reveal(hierarchySelection()); render(); sync();
 }
 for (const item of document.querySelectorAll('.tool-item')) {
   item.draggable = true;
@@ -221,52 +236,94 @@ for (const field of fields) document.getElementById(`component-${field}`).addEve
   } else component[field] = event.target.value;
   render(); sync();
 });
-function remove() { if (preview || !selected()) return;
+function remove() { if (preview || projectSelected || !project || tabs.isEvents()) return;
+  if (!selected()) return deleteWindow();
   project.links = project.links.filter(l => l.a.body !== selectedId && l.b.body !== selectedId);
-  project.components = project.components.filter(c => c.id !== selectedId); selectedId = null; render(); sync(); }
+  project.components = project.components.filter(c => c.id !== selectedId); selectedId = null;
+  explorer.reveal(hierarchySelection()); render(); sync(); }
 function duplicate() {
   if (preview || !selected()) return;
   const copy = clone(selected()); copy.id = id(); copy.name += ' Copy';
-  project.components.push(copy); selectedId = copy.id; render(); sync();
+  project.components.push(copy); selectedId = copy.id; explorer.reveal(hierarchySelection()); render(); sync();
 }
 function replaceProject(next) {
-  projectRoot = next; projectRoot.form_id ||= 'main'; projectRoot.windows ||= []; projectRoot.event_code ||= {};
-  project = projectRoot; selectedId = null; preview = false; stagePosition = null; zoom = 1;
-  formViews.clear(); tabs.reset();
+  projectRoot = next;
+  project = next.windows.find(form => form.form_id === next.startup_window_id);
+  projectSelected = !project; selectedId = null; preview = false; stagePosition = null; zoom = 1;
+  formViews.clear(); tabs.reset(); explorer.reset();
   linkEditor.setConnecting(false); render();
 }
 const tabs = new ViperDesignerTabs({
   root: () => projectRoot,
   preview: () => preview,
   activate(formId) {
-    if (project) formViews.set(project.form_id, {selectedId, zoom, stagePosition});
-    project = [projectRoot, ...projectRoot.windows].find(form => form.form_id === formId);
+    if (project && projectRoot.windows.includes(project)) formViews.set(project.form_id, {selectedId, zoom, stagePosition});
+    project = projectRoot.windows.find(form => form.form_id === formId);
     const view = formViews.get(formId) || {selectedId: null, zoom: 1, stagePosition: null};
-    selectedId = view.selectedId; zoom = view.zoom; stagePosition = view.stagePosition;
+    selectedId = tabs.active?.componentId || view.selectedId; projectSelected = !project; zoom = view.zoom; stagePosition = view.stagePosition;
+    if (!project?.components.some(component => component.id === selectedId)) selectedId = null;
     preview = false; linkEditor.setConnecting(false); linkEditor.selected = null;
-    render();
+    explorer.reveal(hierarchySelection()); render();
   },
   changed: sync
 });
 function newWindow() {
   if (!projectRoot || preview) return;
   let number = 2;
-  const names = new Set([projectRoot, ...projectRoot.windows].map(form => form.window.name));
+  const names = new Set(projectRoot.windows.map(form => form.window.name));
   while (names.has(`Window${number}`)) number++;
-  const form = {form_id: `form_${id()}`, name: projectRoot.name, canvas_width: 960, canvas_height: 640,
-    window: {...clone(projectRoot.window), name: `Window${number}`, title: `Window${number}`}, components: [], links: []};
+  const name = projectRoot.windows.length ? `Window${number}` : 'MainWindow';
+  const form = {...clone(windowDefaults), form_id: `form_${id()}`};
+  form.window.name = name; form.window.title = name;
   form.canvas_width = Math.max(form.canvas_width, form.window.min_width);
   form.canvas_height = Math.max(form.canvas_height, form.window.min_height);
   projectRoot.windows.push(form);
+  projectRoot.startup_window_id ||= form.form_id;
   const doc = {key: `form:${form.form_id}`, formId: form.form_id}; tabs.documents.push(doc); tabs.activate(doc); sync();
 }
 function openElementEvents(componentId = selectedId) {
   if (preview || !project?.components.some(c => c.id === componentId)) return;
-  selectedId = componentId; tabs.openEvents(project.form_id, componentId);
+  selectedId = componentId; projectSelected = false; tabs.openEvents(project.form_id, componentId);
 }
+function selectHierarchy(item) {
+  if (preview) return;
+  if (item.kind === 'project') { projectSelected = true; selectedId = null; render(); return; }
+  tabs.showForm(item.formId);
+  if (item.kind === 'component') selectComponent(item.componentId); else selectWindow();
+}
+function deleteWindow() {
+  if (!project || projectSelected || preview) return;
+  const form = project;
+  if (!confirm(`Delete window "${form.window.name}" and its ${form.components.length} component(s)? Event source will be preserved.`)) return;
+  projectRoot.windows = projectRoot.windows.filter(item => item.form_id !== form.form_id);
+  if (projectRoot.startup_window_id === form.form_id) projectRoot.startup_window_id = projectRoot.windows[0]?.form_id || null;
+  formViews.delete(form.form_id);
+  tabs.documents = tabs.documents.filter(doc => doc.formId !== form.form_id);
+  const next = tabs.documents.at(-1);
+  if (next) tabs.activate(next);
+  else if (projectRoot.windows.length) tabs.showForm(projectRoot.startup_window_id);
+  else tabs.activate(null);
+  sync(); status.textContent = `Deleted ${form.window.name}`;
+}
+function setStartupWindow() {
+  if (!project || preview) return;
+  projectRoot.startup_window_id = project.form_id; render(); sync();
+}
+const explorer = new ViperProjectExplorer(document.getElementById('project-tree'), {
+  root: () => projectRoot, selection: hierarchySelection, editable: () => !preview,
+  select: selectHierarchy,
+  events(item) { selectHierarchy(item); if (!preview) openElementEvents(item.componentId); },
+  properties(item) { selectHierarchy(item); showProperties(); },
+  context(item, x, y, focus) {
+    const items = item.kind === 'project' ? ['new-window', 'rename-selection', 'show-properties'] : item.kind === 'window' ?
+      ['new-window', 'rename-selection', 'set-startup-window', null, 'delete', 'show-properties'] :
+      ['edit-events', 'rename-selection', 'duplicate', 'delete', null, 'show-properties'];
+    menus.context(items, x, y, focus);
+  }
+});
 document.getElementById('add-window').onclick = () => actions.execute('new-window');
 function newProject() {
-  if (project && !confirm('Replace the current project? Save your changes first.')) return;
+  if (projectRoot && !confirm('Replace the current project? Save your changes first.')) return;
   return enqueue(async () => { replaceProject(await viperHost.request('new')); status.textContent = 'New project'; });
 }
 function saveProject() {
@@ -274,18 +331,20 @@ function saveProject() {
     status.textContent = result.cancelled ? 'Save cancelled' : 'Project saved'; });
 }
 function openProject() {
-  if (project && !confirm('Open another project? Save your changes first.')) return;
+  if (projectRoot && !confirm('Open another project? Save your changes first.')) return;
   return enqueue(async () => { const result = await viperHost.request('open');
     if (result.project) { replaceProject(result.project); status.textContent = 'Project opened'; } });
 }
 function togglePreview() {
+  if (projectSelected && projectRoot.startup_window_id) tabs.showForm(projectRoot.startup_window_id);
+  if (!project) return;
   if (tabs.isEvents()) tabs.showForm(project.form_id);
   preview = !preview;
   if (preview) linkEditor.setConnecting(false);
   render(); status.textContent = preview ? 'Preview: interact with controls' : 'Design mode';
 }
 function runProject() {
-  const windowId = project.form_id;
+  const windowId = projectSelected || !project ? projectRoot.startup_window_id : project.form_id;
   sync(); return enqueue(async () => { await viperHost.request('run', {window_id: windowId}); status.textContent = 'Application process started'; });
 }
 function applyPreferences() {
@@ -299,11 +358,12 @@ function applyPreferences() {
 }
 function showProperties() {
   panels.show('inspector');
-  document.getElementById(selected() ? 'component-name' : 'window-name').focus();
+  document.getElementById(projectSelected || !project ? 'project-name' : selected() ? 'component-name' : 'window-name').focus();
 }
 const gridSettings = document.getElementById('grid-settings');
 function closeGridSettings() { gridSettings.hidden = true; }
 panels = new ViperDesignerWorkspace(workspace, [
+  {id: 'project', title: 'Project Explorer', element: document.getElementById('project-tool'), location: 'left', visible: true},
   {id: 'components', title: 'Components', element: document.getElementById('components-tool'), location: 'left'},
   {id: 'inspector', title: 'Inspector', element: document.getElementById('inspector-tool'), location: 'right'}
 ], {
@@ -317,6 +377,7 @@ panels = new ViperDesignerWorkspace(workspace, [
 preferences.set('properties', panels.isOpen('inspector'));
 const menus = createViperDesignerChrome(actions, {
   canvas, newProject, openProject, saveProject, newWindow, duplicate, remove, add, select: selectComponent,
+  setStartupWindow, rename() { showProperties(); document.activeElement.select(); },
   events: () => openElementEvents(),
   toggleTool: tool => panels.toggle(tool), resetWorkspace: () => panels.reset(),
   preview: togglePreview, run: runProject, preferencesChanged: applyPreferences,
@@ -330,10 +391,29 @@ const menus = createViperDesignerChrome(actions, {
   zoom(factor) { zoom = factor === null ? 1 : Math.max(.2, Math.min(5, zoom * factor)); stagePosition = null; renderWindow(); },
   escape() { closeGridSettings(); linkEditor.setConnecting(false); }
 }, {
-  hasProject: () => !!project, hasSelection: () => !!selected(), hasWidget: kind => !!library?.[kind],
+  hasProject: () => !!projectRoot, hasWindow: () => !!project, hasSelection: () => !!selected(), hasWidget: kind => !!library?.[kind],
+  projectSelected: () => projectSelected, hasWindows: () => !!projectRoot?.windows.length,
+  startupSelected: () => projectRoot?.startup_window_id === project?.form_id,
   preview: () => preview, connecting: () => linkEditor.connecting, events: () => tabs.isEvents(),
   toolOpen: tool => panels.isOpen(tool)
 }, preferences);
+actions.subscribe(() => {
+  for (const [element, action] of [['explorer-new-window', 'new-window'], ['explorer-rename', 'rename-selection'],
+    ['explorer-delete', 'delete'], ['empty-new-window', 'new-window']]) document.getElementById(element).disabled = !actions.state(action).enabled;
+});
+for (const [element, action] of [['explorer-new-window', 'new-window'], ['explorer-rename', 'rename-selection'],
+  ['explorer-delete', 'delete'], ['empty-new-window', 'new-window']]) document.getElementById(element).onclick = () => actions.execute(action);
+document.getElementById('open-project-explorer').onclick = () => panels.show('project');
+for (const field of ['name', 'description']) document.getElementById(`project-${field}`).onchange = event => {
+  if (!projectRoot || preview) return;
+  const value = field === 'name' ? event.target.value.trim() : event.target.value;
+  if (field === 'name' && !value) { inspector(); status.textContent = 'Project name cannot be empty'; return; }
+  projectRoot[field] = value; render(); sync();
+};
+document.getElementById('project-startup').onchange = event => {
+  if (preview || !projectRoot.windows.some(form => form.form_id === event.target.value)) return;
+  projectRoot.startup_window_id = event.target.value; render(); sync();
+};
 document.getElementById('close-grid-settings').onclick = closeGridSettings;
 document.getElementById('apply-grid-settings').onclick = () => {
   const input = document.getElementById('grid-size');
@@ -408,5 +488,5 @@ document.getElementById('window-resize').addEventListener('pointerdown', event =
   handle.addEventListener('pointercancel', end);
 });
 viperHost.request('bootstrap').then(data => {
-  library = data.library; replaceProject(data.project); status.textContent = project.name;
+  library = data.library; windowDefaults = data.window_defaults; replaceProject(data.project); status.textContent = projectRoot.name;
 }).catch(error => { status.textContent = error.message; });
