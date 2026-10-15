@@ -8,7 +8,12 @@ def launch(project_path):
     try:
         from .runtime import Runtime
         from .serializer import load_project
-        Runtime(load_project(project_path)).launch()
+        project = load_project(project_path)
+        for key, theme in project.themes.items():
+            stylesheet = Path(project_path).parent / 'themes' / key
+            if stylesheet.is_file():
+                theme['css'] = stylesheet.read_text(encoding='utf-8-sig')
+        Runtime(project).launch()
         return 0
     except Exception as error:
         from .hosts import show_launch_error

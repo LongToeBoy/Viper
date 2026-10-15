@@ -74,7 +74,7 @@ class CDP:
             if flags & 128:
                 return json.loads(message)
 
-    def evaluate(self, expression):
+    def evaluate(self, expression, retries=20):
         self.sequence += 1
         self.send(json.dumps({'id': self.sequence, 'method': 'Runtime.evaluate', 'params': {
             'expression': expression, 'awaitPromise': True, 'returnByValue': True}}).encode())
@@ -82,12 +82,68 @@ class CDP:
             message = self.receive()
             if message.get('id') != self.sequence:
                 continue
+            if retries and message.get('error', {}).get('message') == 'Execution context was destroyed.':
+                threading.Event().wait(.1)
+                return self.evaluate(expression, retries - 1)
             assert 'error' not in message, message
             assert 'exceptionDetails' not in message['result'], message
             return message['result']['result'].get('value')
 
+    def command(self, method, **params):
+        self.sequence += 1
+        self.send(json.dumps({'id':self.sequence, 'method':method, 'params':params}).encode())
+        while True:
+            message = self.receive()
+            if message.get('id') == self.sequence:
+                assert 'error' not in message, message
+                return message['result']
 
-def make_demo(archive, format):
+
+def check_button_focus(client):
+    # Real CDP input changes Chromium's focus modality; synthetic DOM events do not.
+    # Keep keyboard tests independent of other native smoke windows or user focus.
+    client.command('Emulation.setFocusEmulationEnabled', enabled=True)
+    target = client.evaluate('''(() => {
+      const button = controlSession.nodes.get(project.components.find(c => c.type === 'button').id);
+      button.style.removeProperty('background-color');
+      const box = button.getBoundingClientRect(), frame = surface.frame?.getBoundingClientRect();
+      return {x:box.x + box.width / 2 + (frame?.x || 0), y:box.y + box.height / 2 + (frame?.y || 0)};
+    })()''')
+    state = '''(() => {
+      const button = controlSession.nodes.get(project.components.find(c => c.type === 'button').id);
+      return {color:getComputedStyle(button).backgroundColor, focus:button.ownerDocument.activeElement === button,
+        documentFocus:button.ownerDocument.hasFocus(),
+        keyboard:button.matches(':focus-visible'), hover:button.matches(':hover')};
+    })()'''
+    client.command('Input.dispatchMouseEvent', type='mouseMoved', x=2, y=2)
+    before = client.evaluate(state)
+    client.command('Input.dispatchMouseEvent', type='mouseMoved', **target)
+    hover = client.evaluate(state)
+    assert hover['color'] == 'rgb(96, 108, 118)' and hover['hover'], hover
+    client.command('Input.dispatchMouseEvent', type='mousePressed', button='left', clickCount=1, **target)
+    client.command('Input.dispatchMouseEvent', type='mouseReleased', button='left', clickCount=1, **target)
+    client.command('Input.dispatchMouseEvent', type='mouseMoved', x=2, y=2)
+    after = client.evaluate(state)
+    assert after['focus'] and not after['hover'] and not after['keyboard'], after
+    assert after['color'] == before['color'] == 'rgb(155, 77, 202)', {'before':before, 'after':after}
+    # Keep focus and change to keyboard modality, then activate the same handler.
+    client.command('Input.dispatchKeyEvent', type='keyDown', key='Tab', code='Tab', windowsVirtualKeyCode=9, modifiers=8)
+    client.command('Input.dispatchKeyEvent', type='keyUp', key='Tab', code='Tab', windowsVirtualKeyCode=9, modifiers=8)
+    client.command('Input.dispatchKeyEvent', type='keyDown', key='Tab', code='Tab', windowsVirtualKeyCode=9)
+    client.command('Input.dispatchKeyEvent', type='keyUp', key='Tab', code='Tab', windowsVirtualKeyCode=9)
+    keyboard = client.evaluate(state)
+    assert keyboard['focus'] and keyboard['keyboard'] and keyboard['color'] == hover['color'], keyboard
+    client.command('Input.dispatchKeyEvent', type='keyDown', key='Enter', code='Enter', windowsVirtualKeyCode=13)
+    client.command('Input.dispatchKeyEvent', type='keyUp', key='Enter', code='Enter', windowsVirtualKeyCode=13)
+    label = client.evaluate('''(async () => {
+      await controlSession.pending;
+      return controlSession.nodes.get(project.components.find(c => c.name === 'StatusLabel').id).textContent;
+    })()''')
+    assert label == 'Packaged 1/2', label
+    return {'pointer_focus_restored':True, 'keyboard_focus_visible':True, 'keyboard_events':True}
+
+
+def make_demo(archive, format, theme_id=None):
     from viper.app import ViperApp
     from viper.build import export_project
     from viper.models import WindowDefinition
@@ -108,6 +164,14 @@ def make_demo(archive, format):
         'changed': 'def changed(event):\n    MainPanel.Text = "Label change handler ran"\n',
         'unused_draft': 'def unfinished(\n',
     }
+    if theme_id:
+        from viper.themes import ThemeLibrary
+        theme = ThemeLibrary().get(theme_id)
+        project.themes = {theme_id: {key:theme[key] for key in ('name', 'css')}}
+        project.active_theme = theme_id
+        second.window.background_theme_color = 'primary'
+        second.window.use_theme_background = False
+        second.components[0].style_overrides['background_color'] = 'var(--viper-color-primary, #2563eb)'
     export_project(project, archive, format=format, overwrite=True, progress=lambda message: print(message, flush=True))
 
 
@@ -116,11 +180,13 @@ def main():
     parser.add_argument('--archive', type=Path)
     parser.add_argument('--format', choices=['exe', 'python'], default='exe')
     parser.add_argument('--build', action='store_true')
+    parser.add_argument('--theme', choices=['bootstrap.css', 'milligram.css'])
+    parser.add_argument('--check-focus', action='store_true', help='Exercise Milligram pointer and keyboard focus using real CDP input')
     args = parser.parse_args()
     default_archive = 'dist/Viper-Export-Demo-Python.zip' if args.format == 'python' else 'dist/Viper-Export-Demo.zip'
     archive_path = (args.archive or Path(default_archive)).resolve()
     if args.build:
-        make_demo(archive_path, args.format)
+        make_demo(archive_path, args.format, args.theme)
     with tempfile.TemporaryDirectory(prefix='viper-export-test-') as directory:
         temporary = Path(directory)
         moved = temporary / 'Recipient folder with spaces'
@@ -168,7 +234,10 @@ def main():
               byName('Launch').dispatchEvent(new Event('change')); await controlSession.pending;
               relativeLayout.update();
               return {form: project.form_id, title: project.window.title,
-                controls: document.querySelectorAll('.component').length,
+                controls: surface.root.querySelectorAll('.component').length,
+                themed: surface.themed, buttonColor: getComputedStyle(byName('Launch')).backgroundColor,
+                backgroundColor: getComputedStyle(surface.themed ? surface.root.ownerDocument.body : canvas).backgroundColor,
+                buttonClass: byName('Launch').classList.contains('btn'),
                 label: byName('StatusLabel').textContent, panel: byName('MainPanel').textContent,
                 input: byName('NameInput').value, menus: !!document.getElementById('application-chrome')};
             })()''')
@@ -176,10 +245,16 @@ def main():
             assert result['controls'] == 4 and result['menus'] is False, result
             assert result['label'] == 'Packaged 1/2' and result['panel'] == 'Label change handler ran', result
             assert result['input'] == 'Recipient typing', result
+            focus = check_button_focus(client) if args.check_focus else None
+            if args.theme:
+                assert result['themed'] and result['buttonClass'], result
+                assert result['buttonColor'] == ('rgb(13, 110, 253)' if args.theme == 'bootstrap.css' else 'rgb(155, 77, 202)'), result
+                assert result['backgroundColor'] == result['buttonColor'], result
+                assert (project_path.parent / 'themes' / args.theme).is_file()
             runtime_root = executable.parent / ('viper' if args.format == 'python' else '_internal/viper')
             assert not (runtime_root / 'assets' / 'designer.html').exists()
             print(json.dumps({'archive': str(archive_path), 'format': args.format, 'relocated': True, 'python_on_path': False,
-                              'renderer': 'WebView2', 'startup': result['form'], 'checks': 'passed'}))
+                              'renderer': 'WebView2', 'startup': result['form'], 'theme':args.theme, 'focus':focus, 'checks': 'passed'}))
         finally:
             if client:
                 client.socket.close()

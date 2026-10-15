@@ -77,18 +77,21 @@ function createViperDesignerChrome(actions, commands, state, preferences) {
   const menus = new ViperMenus(actions, document.getElementById('application-chrome'), definitions,
     ['save-project', null, 'undo', 'redo', null, 'snap-grid', 'snap-elements', null, 'preview', 'run']);
   const context = ['edit-events', null, 'duplicate', 'delete', null, align, 'connect-links', null, 'show-properties'];
-  commands.canvas.addEventListener('contextmenu', event => {
+  menus.applicationContext = event => {
     const wrapper = event.target.closest('.component-wrapper');
     if (!editing() || !wrapper) return;
     event.preventDefault(); commands.select(wrapper.dataset.id);
     commands.canvas.tabIndex = -1;
-    menus.context(context, event.clientX, event.clientY, commands.canvas);
-  });
-  document.addEventListener('keydown', event => {
+    const point = commands.surface.parentPoint(event, commands.scale());
+    menus.context(context, point.x, point.y, commands.canvas);
+  };
+  commands.canvas.addEventListener('contextmenu', menus.applicationContext);
+  menus.applicationKey = event => {
     if (event.defaultPrevented) return;
     if (event.key === 'Escape') commands.escape();
     else if (actions.handleKey(event)) menus.close(false);
-  });
+  };
+  document.addEventListener('keydown', menus.applicationKey);
   return menus;
 }
 globalThis.createViperDesignerChrome = createViperDesignerChrome;

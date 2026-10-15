@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Cross-platform visual application designer for Python apps"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["pywebview>=6.2.1; sys_platform == 'win32'"]
+dependencies = ["pywebview>=6.2.1; sys_platform == 'win32'", "tinycss2>=1.4,<2"]
 
 [project.optional-dependencies]
 build = ["pyinstaller>=6.16,<7"]
@@ -22,7 +22,7 @@ viper-build = "viper.build:main"
 include = ["viper*"]
 
 [tool.setuptools.package-data]
-viper = ["assets/*.html", "assets/*.css", "assets/*.js"]
+viper = ["assets/*.html", "assets/*.css", "assets/*.js", "themes/*.css"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

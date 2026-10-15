@@ -19,6 +19,8 @@ class Bridge:
         self._lock = RLock()
         self._runtime = None
         self._build_job = None
+        from .themes import ThemeLibrary
+        self.themes = ThemeLibrary()
 
     def receive(self, message: dict[str, Any], reply: Reply) -> None:
         request_id = message.get("id")
@@ -35,7 +37,23 @@ class Bridge:
                 payload = message.get("payload") or {}
                 if command == "bootstrap":
                     success({"project": self.app.project.to_dict(), "library": COMPONENT_LIBRARY,
-                             'window_defaults': WindowDefinition().to_dict()})
+                             'window_defaults': WindowDefinition().to_dict(), 'themes': self.themes.list(),
+                             'theme_directory': str(self.themes.directory.resolve())})
+                elif command == 'theme-list':
+                    success({'themes': self.themes.list()})
+                elif command == 'theme-load':
+                    success(self.themes.get(payload['id']))
+                elif command == 'theme-import':
+                    if self.app.host is None:
+                        raise RuntimeError('No native host attached')
+
+                    def theme_selected(path):
+                        try:
+                            success({'cancelled': True} if path is None else self.themes.import_file(path))
+                        except Exception as error:
+                            failure(error)
+
+                    self.app.host.theme_dialog(theme_selected)
                 elif command == "update":
                     project = Project.from_dict(payload['project'])
                     if project.to_dict() != self.app.project.to_dict():

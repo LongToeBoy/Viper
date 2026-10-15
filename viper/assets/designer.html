@@ -105,6 +105,13 @@
           <label>Name <input id="project-name" type="text"></label>
           <label>Description <textarea id="project-description" rows="4"></textarea></label>
           <label>Startup window <select id="project-startup"></select></label>
+          <div class="property-group appearance-properties">
+            <h3>Application appearance</h3>
+            <label>CSS theme <select id="project-theme"><option value="">Viper default</option></select></label>
+            <div class="appearance-actions"><button id="import-theme" class="tool-button">Import CSS…</button><button id="refresh-themes" class="tool-button">Refresh</button></div>
+            <p class="property-help">Styles all windows in this project. Control names and events stay the same.</p>
+            <p id="theme-directory" class="property-help"></p>
+          </div>
         </div>
         <div class="property-group" id="window-properties">
           <h3>Window properties</h3>
@@ -117,7 +124,8 @@
           <label class="check-property"><input id="window-resizable" type="checkbox">Resizable</label>
           <label class="check-property"><input id="window-decorated" type="checkbox">Show title bar and border</label>
           <label>Initial state <select id="window-state"><option value="normal">Normal</option><option value="maximized">Maximized</option><option value="fullscreen">Fullscreen</option></select></label>
-          <label>Background <input id="window-background" type="color"></label>
+          <label>Background <button id="window-background" type="button" class="color-button" aria-label="Choose window background"></button></label>
+          <label class="check-property"><input id="window-theme-background" type="checkbox">Use CSS theme background</label>
           <label>Window icon <input id="window-icon" type="file" accept="image/png,image/jpeg,image/x-icon,.ico"></label>
           <button class="tool-button" id="clear-window-icon">Clear icon</button>
           <p class="property-help">Click the title bar or empty canvas to select the window. The frame is a design guide; native decorations follow the operating system.</p>
@@ -135,6 +143,13 @@
           <label>Y (px) <input type="number" id="component-y" step="any" /></label>
           <label>Width (px) <input type="number" id="component-width" min="1" step="any" /></label>
           <label>Height (px) <input type="number" id="component-height" min="1" step="any" /></label>
+          <label class="check-property"><input id="component-visible" type="checkbox">Visible</label>
+          <label class="check-property"><input id="component-enabled" type="checkbox">Enabled</label>
+          <details open class="component-appearance"><summary>Appearance</summary>
+            <p class="property-help">Blank values use the theme or original component style. Reset restores that appearance.</p>
+            <div id="style-fields" class="property-group"></div>
+            <button id="reset-component-style" class="tool-button">Reset appearance</button>
+          </details>
         </div>
         <div id="link-properties" class="property-group">
           <h3>Anchor link</h3>
@@ -151,6 +166,8 @@
     </div>
 
     <script src="host.js"></script>
+    <script src="theme-colors.js"></script>
+    <script src="appearance.js"></script>
     <script src="components.js"></script>
     <script src="control-session.js"></script>
     <script src="anchor-layout.js"></script>
@@ -164,6 +181,8 @@
     <script src="designer-explorer.js"></script>
     <script src="designer-chrome.js"></script>
     <script src="designer-tabs.js"></script>
+    <script src="designer-color-picker.js"></script>
+    <script src="designer-appearance.js"></script>
     <script src="designer.js"></script>
   </body>
 </html>

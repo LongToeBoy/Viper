@@ -50,6 +50,8 @@ class WindowSettings:
     min_height: int = 100
     state: str = "normal"
     background_color: str = "#0f1b2f"
+    use_theme_background: bool = True
+    background_theme_color: str = ''
 
     def to_dict(self):
         from dataclasses import asdict
@@ -66,6 +68,9 @@ class WindowSettings:
         import re
         if not re.fullmatch(r"#[0-9a-fA-F]{6}", settings.background_color):
             raise ValueError("Invalid window background color")
+        if not isinstance(settings.background_theme_color, str) or (settings.background_theme_color and
+                not re.fullmatch(r'[a-z][a-z0-9-]{0,90}', settings.background_theme_color)):
+            raise ValueError('Invalid window theme color')
         if settings.icon and not settings.icon.startswith("data:image/png;base64,"):
             raise ValueError("Window icon must be an embedded PNG")
         return settings
@@ -129,8 +134,11 @@ class Component:
     box: dict[str, Any] | None = None
     size_mode: str = 'fixed'
     depth: int = 2
+    style_overrides: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
+        from .themes import style_overrides
+        self.style_overrides = style_overrides(self.style_overrides)
         if type(self.depth) is not int or not 0 <= self.depth <= 4:
             raise ValueError('Component depth must be an integer from 0 to 4')
 
@@ -148,6 +156,7 @@ class Component:
             "box": self.box,
             "size_mode": self.size_mode,
             "depth": self.depth,
+            "style_overrides": dict(self.style_overrides),
         }
 
     @classmethod
@@ -165,6 +174,7 @@ class Component:
             box=rectangle_definition(data.get('box', data.get('physics'))),
             size_mode=str(data.get('size_mode', 'fixed')),
             depth=data.get('depth', 2),
+            style_overrides=data.get('style_overrides', {}),
         )
         if component.size_mode not in {'fixed', 'stretch'}:
             raise ValueError('Invalid component size mode')
@@ -258,9 +268,11 @@ class Project:
     windows: list[WindowDefinition]
     startup_window_id: str | None
     event_code: dict[str, str]
+    themes: dict[str, dict[str, str]]
+    active_theme: str | None
 
     def __init__(self, name="Untitled Project", description="", version=1, *, windows=None,
-                 startup_window_id=None, event_code=None, **startup_settings):
+                 startup_window_id=None, event_code=None, themes=None, active_theme=None, **startup_settings):
         self.name, self.description, self.version = name, description, version
         # Keep the original Python startup-form constructor options usable.
         if windows is None or startup_settings:
@@ -271,6 +283,11 @@ class Project:
         self.startup_window_id = startup_window_id if startup_window_id is not None else (
             self.windows[0].form_id if self.windows else None)
         self.event_code = dict(event_code or {})
+        from .themes import theme_definitions
+        self.themes = theme_definitions({} if themes is None else themes)
+        self.active_theme = active_theme
+        if active_theme is not None and (not isinstance(active_theme, str) or active_theme not in self.themes):
+            raise ValueError('Active theme must belong to the project')
         ids = [form.form_id for form in self.windows]
         if any(not isinstance(key, str) or not key for key in ids) or len(set(ids)) != len(ids):
             raise ValueError('Window IDs must be nonempty and unique')
@@ -299,7 +316,8 @@ class Project:
     def to_dict(self):
         return {'name': self.name, 'description': self.description, 'version': self.version,
                 'windows': [form.to_dict() for form in self.windows],
-                'startup_window_id': self.startup_window_id, 'event_code': dict(self.event_code)}
+                'startup_window_id': self.startup_window_id, 'event_code': dict(self.event_code),
+                'themes': {key: dict(value) for key, value in self.themes.items()}, 'active_theme': self.active_theme}
 
     @classmethod
     def from_dict(cls, data):
@@ -309,7 +327,8 @@ class Project:
             windows.insert(0, WindowDefinition.from_dict(data))
         return cls(name=str(data.get('name', 'Untitled Project')), description=str(data.get('description', '')),
                    version=int(data.get('version', 1)), windows=windows,
-                   startup_window_id=data.get('startup_window_id'), event_code=dict(data.get('event_code', {})))
+                   startup_window_id=data.get('startup_window_id'), event_code=dict(data.get('event_code', {})),
+                   themes=data.get('themes', {}), active_theme=data.get('active_theme'))
 
     # Compatibility accessors for existing Python launchers. Serialized project
     # ownership always lives in windows; these delegate to the chosen startup form.

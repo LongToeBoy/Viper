@@ -81,7 +81,8 @@ class Runtime:
         before = None
         try:
             if message["command"] == "bootstrap":
-                result = {"project": self.form.to_dict()}
+                result = {"project": self.form.to_dict(),
+                          'theme': self.project.themes.get(self.project.active_theme)}
             elif message["command"] == "event":
                 payload = message["payload"]
                 form = self.project.get_window(payload.get('window_id', self.window_id))

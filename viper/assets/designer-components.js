@@ -14,10 +14,13 @@ window.viperDesignerComponents = {
     const wrapper = document.createElement('div');
     wrapper.className = 'component-wrapper';
     wrapper.dataset.id = component.id;
-    wrapper.style.zIndex = viperComponents.depth(component);
+    wrapper.style.setProperty('z-index', viperComponents.depth(component), 'important');
     // The wrapper owns depth; keep its editing handles above the inner control.
-    control.style.zIndex = 'auto';
+    control.style.setProperty('z-index', 'auto', 'important');
+    for (const [property, value] of Object.entries({left:'0px', top:'0px', width:'100%', height:'100%', transform:'none'}))
+      control.style.setProperty(property, value, 'important');
     wrapper.hidden = !component.visible;
+    if (!component.visible) wrapper.style.setProperty('display', 'none', 'important');
     wrapper.appendChild(control);
     for (const edge of ['top', 'right', 'bottom', 'left']) {
       const handle = document.createElement('span');

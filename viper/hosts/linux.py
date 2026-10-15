@@ -121,5 +121,28 @@ class LinuxHost(NativeHost):
     def resize(self, width, height):
         self._on_ui(lambda: self._window.set_default_size(width, height))
 
+    def theme_dialog(self, callback):
+        def choose():
+            Gtk = self._Gtk
+            dialog = Gtk.FileChooserNative.new('Import application CSS', self._window,
+                                               Gtk.FileChooserAction.OPEN, 'Import', 'Cancel')
+            file_filter = Gtk.FileFilter()
+            file_filter.set_name('CSS stylesheet (*.css)')
+            file_filter.add_pattern('*.css')
+            dialog.add_filter(file_filter)
+            self._dialog = dialog
+
+            def response(chooser, response_id):
+                selected = chooser.get_file() if response_id == Gtk.ResponseType.ACCEPT else None
+                path = selected.get_path() if selected else None
+                chooser.destroy()
+                self._dialog = None
+                callback(Path(path) if path else None)
+
+            dialog.connect('response', response)
+            dialog.show()
+
+        self._on_ui(choose)
+
     def close(self):
         self._on_ui(self._application.quit)

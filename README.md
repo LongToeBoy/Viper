@@ -97,6 +97,70 @@ the project JSON. Closing an Events tab preserves its code, and Create handler
 never replaces existing source. Renaming or duplicating an element also preserves
 its handlers. Arrow keys, Home and End navigate focused tabs.
 
+## Application CSS and appearance
+
+Select the parent project in **Project Explorer** and open **Windows > Inspector**.
+Under **Project properties > Application appearance > CSS theme**, choose
+Bootstrap, Milligram, or Viper default. Global settings appear only for the parent
+project; selecting a window or component shows its own properties. **Import CSS…**
+accepts a local `.css` file, including a framework's `dist/*.css` or minified CSS. Themes style
+the application on the design canvas, in Preview and Run, and in either export.
+Viper's menus, docking panels and Inspector keep their own appearance. Native
+window decorations continue to follow the operating system.
+
+Buttons keep their hover color only while the pointer is over them. Theme focus
+styling remains visible during keyboard navigation; mouse clicks keep the button
+focus without leaving its focus color stuck after the pointer moves away.
+
+Imported stylesheets are stored in `viper/themes/`; the Inspector shows its exact
+location. You can also place CSS files there and click **Refresh**. Refresh reloads
+the active theme from that folder when available. Projects embed their selected
+themes, so opening a saved project does not depend on the original CSS file.
+
+Controls use their normal HTML tags and automatically receive common framework
+classes: buttons get `btn btn-primary button is-primary`, text inputs get
+`form-control input`, labels get `form-label`, panels get `card card-body`, and
+checkboxes get `form-check` with `form-check-input`/`form-check-label` children.
+You do not rename controls or write CSS classes in the Inspector. Python names
+such as `Button1.Text = "Start"` and all event source remain unchanged. Custom
+CSS can target these tags/classes. Frameworks requiring their own special markup
+may need a matching stylesheet; importing CSS does not add JavaScript widgets.
+
+Select a component to edit its **Appearance**: font, colors (palette or CSS value),
+borders, corner radius, padding, alignment, wrapping and overflow. Explicit values
+override the theme. Clear a field to inherit its styling; **Reset appearance**
+clears all appearance overrides. Choosing Viper default restores original
+component styles, with any explicit overrides retained. Appearance overrides do
+not crop text by default. Themes preserve authored geometry, anchor links and depth.
+
+Click a color button to open the color dialog. It shows the actual current color
+and offers named theme swatches such as **Primary**, **Background**, **Surface**
+and **Text**, plus the stylesheet's available color variables and other colors.
+Themes without color variables get a palette from their rendered controls and CSS.
+Choose a swatch, then **Apply**; **Cancel** or Escape discards the draft. Arrow keys
+move between swatches. **Custom color** offers hex/CSS input and RGB sliders.
+
+Named colors follow their matching role when you switch themes. If a new theme
+has no matching color, Viper keeps the saved fallback. Custom colors stay fixed.
+The same picker serves window backgrounds and component background/text/border
+colors. Choosing a window background automatically turns off **Use CSS theme
+background**, so the selected color takes effect immediately, including over
+theme gradients. **Use theme background** restores CSS styling. Color buttons
+show the effective color and palette name, including when the theme owns it.
+
+Local CSS `@import` files are combined, and local images/fonts are embedded as
+data URLs for portable exports. Network imports/resources are rejected: download
+those resources beside the stylesheet first. Images/fonts are limited to 2 MB
+each and combined CSS to 8 MB. Cyclic imports and `@import layer/supports`
+qualifiers are rejected with a message. A project can store up to 32 themes.
+Bootstrap 5.3.3 and Milligram 1.4.1 are bundled with their MIT license notices
+inside the CSS.
+
+Python ZIPs include editable `themes/*.css` next to `app.py`. Executable ZIPs
+include them under `_internal/themes/`. The packaged launcher reads those files
+when present, falling back to embedded project CSS. Keep the exported folders
+together when sharing the app.
+
 ## Event data and control access
 
 An event describes an interaction: `event['window_id']` and
@@ -190,7 +254,8 @@ Hidden components remain accessible through the tree. Double-click a component
 to open its Events tab. The tree supports arrow keys, Home, End and Enter/Space;
 F2 opens the selected item's name in Inspector.
 
-Select the project to edit its name, description and **Startup window**. A window's
+Select the project to edit its name, description, **Startup window** and global
+**Application appearance**, including CSS themes. A window's
 context menu also provides **Set as Startup Window**. **+ Window**, Insert > New
 Window and the form tab's plus button always create another child of the project.
 Window and component names are edited in their existing Inspector fields, and

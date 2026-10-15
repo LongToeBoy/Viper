@@ -22,8 +22,9 @@ class ViperRelativeLayout {
       this.rectangles = ViperAnchorLayout.solve(this.project, this.canvas.clientWidth, this.canvas.clientHeight);
       for (const [id, node] of this.nodes) {
         const rectangle = this.rectangles.get(id); if (!rectangle) continue;
-        Object.assign(node.style, {left: '0px', top: '0px', width: `${rectangle.width}px`,
-          height: `${rectangle.height}px`, transform: `translate(${rectangle.x}px, ${rectangle.y}px)`});
+        for (const [property, value] of Object.entries({left: '0px', top: '0px', margin: '0px', width: `${rectangle.width}px`,
+          height: `${rectangle.height}px`, transform: `translate(${rectangle.x}px, ${rectangle.y}px)`}))
+          node.style.setProperty(property, value, 'important');
       }
       this.onChange();
     } catch (error) { this.onError(error); }

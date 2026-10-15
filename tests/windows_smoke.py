@@ -178,6 +178,18 @@ def verify():
                                 lambda value: (depth_results.append(value), depth_ready.set()))
         assert depth_ready.wait(30), 'Depth checks did not finish'
         assert 'error' not in depth_results[0] and depth_results[0].get('passed', 0) >= 12, depth_results
+        appearance_results = []
+        if not runtime_mode:
+            appearance_ready = threading.Event()
+            host._window.evaluate_js((Path(__file__).parent / 'designer_appearance_cases.js').read_text(encoding='utf-8'),
+                                    lambda value: (appearance_results.append(value), appearance_ready.set()))
+            assert appearance_ready.wait(30), 'Application appearance checks did not finish'
+            assert 'error' not in appearance_results[0] and appearance_results[0].get('passed', 0) >= 30, appearance_results
+            color_ready, color_results = threading.Event(), []
+            host._window.evaluate_js((Path(__file__).parent / 'designer_color_cases.js').read_text(encoding='utf-8'),
+                                    lambda value: (color_results.append(value), color_ready.set()))
+            assert color_ready.wait(30), 'Theme palette color checks did not finish'
+            assert 'error' not in color_results[0] and color_results[0].get('passed', 0) >= 30, color_results
         threading.Event().wait(.1)  # Drain native API acknowledgements before closing.
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
                           'form': runtime_form.form_id if runtime_mode else 'main',
@@ -189,6 +201,8 @@ def verify():
                           'control_checks': controls_results[0]['passed'],
                           'change_checks': change_results[0]['passed'],
                           'depth_checks': depth_results[0]['passed'],
+                          'appearance_checks': 0 if runtime_mode else appearance_results[0]['passed'],
+                          'color_checks': 0 if runtime_mode else color_results[0]['passed'],
                           'checks': 'passed'}))
     except Exception as exc:
         import traceback

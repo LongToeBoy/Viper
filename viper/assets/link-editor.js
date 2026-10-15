@@ -35,7 +35,9 @@ class ViperLinkEditor {
   mode() {
     this.canvas.classList.toggle('connecting-links', this.connecting && !this.preview);
     this.anchors.hidden = this.preview;
-    for (const anchor of [...this.canvas.querySelectorAll('.position-anchor'), ...this.anchors.children]) {
+    const root = this.layout?.nodes.values().next().value?.parentElement || this.canvas;
+    root.classList.toggle('connecting-links', this.connecting && !this.preview);
+    for (const anchor of [...root.querySelectorAll('.position-anchor'), ...this.anchors.children]) {
       const body = anchor.closest('.component-wrapper')?.dataset.id || '$window';
       anchor.classList.toggle('anchor-pending', !!this.pending && this.pending.body === body && this.pending.edge === anchor.dataset.anchor);
     }

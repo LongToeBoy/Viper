@@ -9,29 +9,30 @@ window.viperComponents = {
     return {x: Math.min(Math.max(0, layout.x * width / 100), width - w),
       y: Math.min(Math.max(0, layout.y * height / 100), height - h), width: w, height: h};
   },
-  make(component, interactive, onEvent) {
+  make(component, interactive, onEvent, themed = false) {
     const tags = {button: 'button', label: 'span', text_input: 'input', checkbox: 'label', panel: 'section'};
     if (!tags[component.type]) throw new Error(`Unsupported component: ${component.type}`);
     const el = document.createElement(tags[component.type]);
     el.className = 'component';
+    if (themed) el.classList.add(...(ViperAppearance.classes[component.type] || []));
     el.dataset.id = component.id;
-    el.style.zIndex = this.depth(component);
+    el.style.setProperty('z-index', this.depth(component), 'important');
     if (component.type === 'text_input') {
       el.type = 'text'; el.value = component.text;
     } else if (component.type === 'checkbox') {
       const input = document.createElement('input');
       input.type = 'checkbox'; input.disabled = !interactive || !component.enabled;
+      if (themed) input.className = 'form-check-input';
       const caption = document.createElement('span'); caption.className = 'component-caption'; caption.textContent = component.text;
+      if (themed) caption.classList.add('form-check-label');
       el.append(input, caption);
     } else el.textContent = component.text;
     el.hidden = !component.visible;
+    if (!component.visible) el.style.setProperty('display', 'none', 'important');
     if ('disabled' in el) el.disabled = interactive && !component.enabled;
     el.dataset.enabled = String(component.enabled);
     if (interactive) el.setAttribute('aria-disabled', String(!component.enabled));
-    const s = component.style;
-    Object.assign(el.style, {fontSize: `${s.font_size}px`, fontWeight: s.font_weight,
-      color: s.text_color, backgroundColor: s.background_color, borderRadius: `${s.border_radius}px`,
-      borderWidth: `${s.border_width}px`, borderColor: s.border_color, padding: `${s.padding}px`});
+    ViperAppearance.applyStyle(el, component, themed);
     if (interactive) {
       for (const event of ['click', 'change']) el.addEventListener(event, e => {
         if (el.dataset.enabled === 'false' || (component.type === 'checkbox' && e.target !== el.querySelector('input'))) return;
@@ -47,7 +48,11 @@ window.viperComponents = {
       else el.textContent = properties.text;
     }
     if (Object.hasOwn(properties, 'checked') && component.type === 'checkbox') el.querySelector('input').checked = properties.checked;
-    if (Object.hasOwn(properties, 'visible')) el.hidden = !properties.visible;
+    if (Object.hasOwn(properties, 'visible')) {
+      el.hidden = !properties.visible;
+      if (properties.visible) el.style.removeProperty('display');
+      else el.style.setProperty('display', 'none', 'important');
+    }
     if (Object.hasOwn(properties, 'enabled')) {
       el.dataset.enabled = String(properties.enabled); el.setAttribute('aria-disabled', String(!properties.enabled));
       if ('disabled' in el) el.disabled = !properties.enabled;

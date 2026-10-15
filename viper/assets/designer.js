@@ -1,4 +1,5 @@
 const canvas = document.getElementById('canvas');
+const surface = new ViperApplicationSurface(canvas);
 
 let project, library, selectedId, preview = false;
 let projectRoot, windowDefaults, projectSelected = false;
@@ -30,13 +31,14 @@ const relativeLayout = new ViperRelativeLayout(canvas, () => {
 }, error => { status.textContent = error.message; });
 const windowFields = {name: 'name', caption: 'title', 'min-width': 'min_width',
   'min-height': 'min_height', resizable: 'resizable', decorated: 'decorated',
-  state: 'state', background: 'background_color'};
+  state: 'state', 'theme-background': 'use_theme_background'};
 function renderWindow() {
   if (!project || viewport.hidden) return;
   const w = project.window;
   canvas.style.width = `${project.canvas_width}px`;
   canvas.style.height = `${project.canvas_height}px`;
   canvas.style.backgroundColor = w.background_color;
+  surface.background(w);
   const titlebar = document.getElementById('window-titlebar');
   titlebar.hidden = !w.decorated || w.state === 'fullscreen';
   document.getElementById('window-title').textContent = w.title;
@@ -122,6 +124,7 @@ function sync() {
 }
 function inspector() {
   if (!projectRoot) return;
+  appearanceInspector.refresh();
   const rootSelected = projectSelected || !project;
   document.getElementById('project-properties').hidden = !rootSelected;
   for (const field of ['name', 'description']) {
@@ -164,14 +167,17 @@ function render() {
   if (!project) { canvas.replaceChildren(); inspector(); actions.refresh(); return; }
   if (tabs.isEvents()) { inspector(); actions.refresh(); return; }
   renderWindow();
-  canvas.replaceChildren();
+  const root = surface.prepare(projectRoot.themes?.[projectRoot.active_theme]);
+  surface.background(project.window);
+  surface.syncPreferences(preferences.values);
+  wireApplicationSurface();
   const nodes = new Map();
   for (const component of project.components) {
     const control = viperComponents.make(component, preview, payload => {
       previewSession?.dispatch(payload);
-    });
+    }, surface.themed);
     const el = preview ? control : viperDesignerComponents.wrap(control, component, canvas, {
-      scale: () => windowScale,
+      scale: () => surface.themed ? 1 : windowScale,
       anchor: (body, edge) => linkEditor.anchor(body, edge),
       rectangle: body => relativeLayout.rectangles.get(body),
       move(body, bounds, edge) {
@@ -190,7 +196,7 @@ function render() {
       events: openElementEvents,
       changed() { render(); sync(); }
     });
-    canvas.appendChild(el);
+    root.appendChild(el);
     nodes.set(component.id, el);
     el.classList.toggle('selected', !preview && component.id === selectedId);
   }
@@ -203,10 +209,51 @@ function render() {
   inspector();
   actions.refresh();
 }
+function wireApplicationSurface() {
+  if (!surface.themed) return;
+  const root = surface.root, doc = root.ownerDocument;
+  root.addEventListener('click', event => {
+    if (suppressBoardClick) { suppressBoardClick = false; return; }
+    if (event.target === root) selectWindow();
+  });
+  doc.addEventListener('contextmenu', event => menus.applicationContext(event));
+  doc.addEventListener('keydown', event => {
+    if (event.key === 'F10' || event.altKey || (menus.popups.length && ['Escape', 'Tab'].includes(event.key))) {
+      const forwarded = new KeyboardEvent('keydown', {key:event.key, altKey:event.altKey, ctrlKey:event.ctrlKey,
+        shiftKey:event.shiftKey, metaKey:event.metaKey, bubbles:true, cancelable:true});
+      document.dispatchEvent(forwarded);
+      if (forwarded.defaultPrevented) event.preventDefault();
+    } else menus.applicationKey(event);
+  });
+  doc.addEventListener('pointerdown', () => menus.close(false), true);
+  doc.addEventListener('wheel', event => {
+    event.preventDefault(); const point = surface.parentPoint(event, windowScale);
+    viewport.dispatchEvent(new WheelEvent('wheel', {clientX:point.x, clientY:point.y,
+      deltaX:event.deltaX, deltaY:event.deltaY, deltaMode:event.deltaMode, cancelable:true}));
+  }, {passive:false});
+  const forwardPointer = (target, event) => {
+    const point = surface.parentPoint(event, windowScale);
+    target.dispatchEvent(new PointerEvent(event.type, {pointerId:event.pointerId, button:event.button,
+      buttons:event.buttons, clientX:point.x, clientY:point.y, bubbles:true, cancelable:true}));
+  };
+  root.addEventListener('pointerdown', event => {
+    if (event.target !== root) return;
+    event.preventDefault(); forwardPointer(viewport, event); root.setPointerCapture(event.pointerId);
+  });
+  for (const type of ['pointermove', 'pointerup']) doc.addEventListener(type, event => {
+    if (panGesture) forwardPointer(document, event);
+  });
+  doc.addEventListener('pointercancel', () => { panGesture = null; viewport.classList.remove('is-panning'); });
+  root.addEventListener('dragover', event => { if (!preview) event.preventDefault(); });
+  root.addEventListener('drop', event => {
+    event.preventDefault(); add(event.dataTransfer.getData('text/plain'),
+      event.clientX * 100 / canvas.clientWidth, event.clientY * 100 / canvas.clientHeight);
+  });
+}
 function selectComponent(componentId) {
   if (preview || !project?.components.some(component => component.id === componentId)) return;
   selectedId = componentId; projectSelected = false; inspector(); frame.classList.remove('selected');
-  canvas.querySelectorAll('.component-wrapper').forEach(node =>
+  surface.root.querySelectorAll('.component-wrapper').forEach(node =>
     node.classList.toggle('selected', node.dataset.id === componentId));
   explorer.reveal(hierarchySelection()); explorer.render(); actions.refresh();
 }
@@ -401,6 +448,7 @@ function applyPreferences() {
   const values = preferences.values;
   workspace.classList.toggle('grid-hidden', !values.showGrid);
   workspace.classList.toggle('anchors-hidden', !values.showAnchors);
+  surface.syncPreferences(values);
   if (panels && panels.isOpen('inspector') !== values.properties) panels.toggle('inspector');
   canvas.style.backgroundSize = `${values.gridSize}px ${values.gridSize}px`;
   viewport.style.backgroundSize = `${values.gridSize * 2}px ${values.gridSize * 2}px`;
@@ -411,6 +459,16 @@ function showProperties() {
   document.getElementById(projectSelected || !project ? 'project-name' : selected() ? 'component-name' : 'window-name').focus();
 }
 const gridSettings = document.getElementById('grid-settings');
+const appearanceInspector = new ViperAppearanceInspector({
+  root: () => projectRoot, selected, editable: () => !preview && !tabs.isEvents(),
+  form: () => project, surface: () => surface,
+  control() {
+    const node = relativeLayout.nodes.get(selectedId);
+    return node?.classList.contains('component-wrapper') ? node.firstElementChild : node;
+  },
+  changed() { render(); sync(); }, request: (command, payload) => viperHost.request(command, payload),
+  status(message) { status.textContent = message; }
+});
 function closeGridSettings() { gridSettings.hidden = true; }
 panels = new ViperDesignerWorkspace(workspace, [
   {id: 'project', title: 'Project Explorer', element: document.getElementById('project-tool'), location: 'left', visible: true},
@@ -426,7 +484,7 @@ panels = new ViperDesignerWorkspace(workspace, [
 });
 preferences.set('properties', panels.isOpen('inspector'));
 const menus = createViperDesignerChrome(actions, {
-  canvas, newProject, openProject, saveProject, newWindow, duplicate, remove, add, select: selectComponent,
+  canvas, surface, scale: () => windowScale, newProject, openProject, saveProject, newWindow, duplicate, remove, add, select: selectComponent,
   setStartupWindow, rename() { showProperties(); document.activeElement.select(); },
   events: () => openElementEvents(),
   toggleTool: tool => panels.toggle(tool), resetWorkspace: () => panels.reset(),
@@ -538,5 +596,8 @@ document.getElementById('window-resize').addEventListener('pointerdown', event =
   handle.addEventListener('pointercancel', end);
 });
 viperHost.request('bootstrap').then(data => {
-  library = data.library; windowDefaults = data.window_defaults; replaceProject(data.project); status.textContent = projectRoot.name;
+  library = data.library; windowDefaults = data.window_defaults;
+  appearanceInspector.library = data.themes || [];
+  document.getElementById('theme-directory').textContent = `Theme folder: ${data.theme_directory}`;
+  replaceProject(data.project); status.textContent = projectRoot.name;
 }).catch(error => { status.textContent = error.message; });

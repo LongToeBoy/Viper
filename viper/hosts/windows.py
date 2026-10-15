@@ -94,6 +94,11 @@ class WindowsHost(NativeHost):
                                                file_types=('Application ZIP (*.zip)',))
         callback(Path(paths[0]) if paths else None)
 
+    def theme_dialog(self, callback):
+        paths = self._window.create_file_dialog(self._webview.FileDialog.OPEN,
+                                               file_types=('CSS stylesheet (*.css)',))
+        callback(Path(paths[0]) if paths else None)
+
     def resize(self, width, height):
         self._window.resize(width, height)
 

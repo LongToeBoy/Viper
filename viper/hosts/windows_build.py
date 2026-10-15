@@ -25,6 +25,8 @@ class WindowsBuilder:
                    '--hidden-import', 'webview.platforms.edgechromium']
         for module in ['gi', 'PyQt5', 'PyQt6', 'PySide2', 'PySide6', 'cefpython3']:
             command.extend(['--exclude-module', module])
+        if (staging / 'themes').is_dir():
+            command.extend(['--add-data', f'{staging / "themes"}:themes'])
         for module in imports:
             command.extend(['--hidden-import', module])
         if window.icon:

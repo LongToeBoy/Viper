@@ -158,6 +158,33 @@ select { padding: 8px; background: var(--panel-alt); color: var(--text); border:
 }
 
 .component[hidden] { display: none; }
+.appearance-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.appearance-color { display:grid; grid-template-columns:minmax(0,1fr); gap:5px; }
+.color-button { display:flex; align-items:center; gap:8px; min-width:0; padding:7px 9px;
+  border:1px solid var(--line); border-radius:8px; background:var(--panel-alt); color:var(--text); cursor:pointer; text-align:left; }
+.color-button-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.color-chip { position:relative; flex:0 0 28px; height:24px; border:1px solid #ffffff60; border-radius:4px;
+  background:repeating-conic-gradient(#fff 0 25%,#bbb 0 50%) 0/10px 10px; overflow:hidden; }
+.color-chip::after { content:''; position:absolute; inset:0; background:var(--swatch-color); }
+.color-button:disabled { opacity:.5; cursor:default; }
+.color-picker { width:min(560px,calc(100vw - 28px)); max-height:calc(100vh - 28px); box-sizing:border-box;
+  overflow:auto; padding:20px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:12px; }
+.color-picker::backdrop { background:#0009; }
+.color-picker form { display:grid; gap:12px; }
+.color-picker h3,.color-picker h4,.color-picker p { margin:0; }
+.color-picker label { display:grid; gap:6px; font-size:12px; }
+.color-picker input { min-width:0; width:100%; box-sizing:border-box; }
+.color-picker summary { cursor:pointer; margin-bottom:10px; }
+.color-palette { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:6px; max-height:240px; overflow:auto; padding:3px; }
+.palette-swatch[aria-pressed="true"],#color-use-default[aria-pressed="true"] { outline:2px solid var(--accent); outline-offset:1px; }
+.color-rgb { display:grid; gap:8px; margin-top:12px; }
+.color-rgb label { display:grid; grid-template-columns:38px minmax(30px,1fr) 64px; align-items:center; }
+.color-rgb input[type="range"] { padding:0; }
+.color-error { color:#ffb1b1; font-size:12px; }
+.color-error:empty { display:none; }
+.color-preview { cursor:default; }
+#theme-directory { overflow-wrap:anywhere; }
+.component-appearance summary { cursor:pointer; margin:10px 0; }
 .component input[type="checkbox"] { margin-right: 8px; }
 .component-wrapper { position: absolute; cursor: move; touch-action: none; }
 .component-wrapper[hidden] { display: none; }

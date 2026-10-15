@@ -16,7 +16,7 @@ from .models import Project
 from .serializer import load_project, save_project
 
 
-RUNTIME_ASSETS = ('runtime.html', 'designer.css', 'host.js', 'components.js',
+RUNTIME_ASSETS = ('runtime.html', 'designer.css', 'host.js', 'theme-colors.js', 'appearance.js', 'components.js',
                   'control-session.js', 'anchor-layout.js', 'relative-layout.js', 'runtime.js')
 
 
@@ -86,6 +86,8 @@ def python_bundle(staging, name, requirements):
     bundle.mkdir()
     shutil.copyfile(staging / 'launch.py', bundle / 'app.py')
     shutil.copyfile(staging / 'project.json', bundle / 'project.json')
+    if (staging / 'themes').is_dir():
+        shutil.copytree(staging / 'themes', bundle / 'themes')
     runtime = bundle / 'viper'
     runtime.mkdir()
     source = Path(__file__).resolve().parent
@@ -111,7 +113,8 @@ def python_bundle(staging, name, requirements):
         'Linux native behavior remains unverified.\n\n'
         'Keep app.py, project.json and the viper folder together. Paths resolve relative to app.py,\n'
         'so launching from another working directory is supported. The configured startup window\n'
-        'is used. Event source and window definitions are stored in project.json.\n', encoding='utf-8')
+        'is used. Event source and window definitions are stored in project.json.\n'
+        'Application CSS, when selected, is in themes/. Keep that folder with the project.\n', encoding='utf-8')
     return bundle
 
 
@@ -140,6 +143,10 @@ def export_project(project, destination, *, format='exe', builder=None, progress
     with tempfile.TemporaryDirectory(prefix='viper-build-') as directory:
         staging = Path(directory)
         save_project(snapshot, staging / 'project.json')
+        if snapshot.themes:
+            (staging / 'themes').mkdir()
+            for key, theme in snapshot.themes.items():
+                (staging / 'themes' / key).write_text(theme['css'], encoding='utf-8', newline='')
         (staging / 'launch.py').write_text(
             'from pathlib import Path\nfrom viper.packaged import launch\n\n'
             'if __name__ == "__main__":\n'

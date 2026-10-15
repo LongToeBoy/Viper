@@ -39,6 +39,9 @@ class NativeHost(ABC):
     def export_dialog(self, name: str, callback: Callable[[Path | None], None]) -> None:
         raise RuntimeError('Application export is not available on this host.')
 
+    def theme_dialog(self, callback: Callable[[Path | None], None]) -> None:
+        raise RuntimeError('CSS import is not available on this host.')
+
     @abstractmethod
     def set_title(self, title: str) -> None: ...
 

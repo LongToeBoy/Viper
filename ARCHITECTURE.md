@@ -504,3 +504,107 @@ passes fifteen export-command checks covering format choice, cancellation, both
 payloads, progress and the unchanged completion text. Relocated Python app.py and
 executable exports are exercised by windows_export_smoke.py with the same actual
 WebView2 controls and button/change handlers.
+
+## Application CSS themes and rich Inspector (2026-10-15)
+
+Project owns embedded themes keyed by portable CSS filenames and an optional
+active_theme. Components retain their original style dictionaries and add explicit
+style_overrides; existing projects migrate with no theme and no overrides. The
+Inspector offers automatic framework selection/import/refresh, font/color/border/
+padding/alignment/wrapping/overflow overrides, and Visible/Enabled editing. Blank
+fields inherit the theme or original styling. Reset clears overrides. No control
+name, ID, event mapping or user-authored Python source changes when switching CSS.
+
+themes.py uses tinycss2 for local stylesheet imports and image/font embedding,
+with size limits, cycle detection, portable filenames and network-resource errors.
+Imported CSS is copied to viper/themes/ without replacing existing different files;
+selected theme source is embedded in project JSON for reopening and Run snapshots.
+Bootstrap 5.3.3 and Milligram 1.4.1 are bundled with full MIT notices in their CSS.
+NativeHost adds a CSS chooser implemented by the existing Windows and GTK adapters.
+
+assets/appearance.js provides one ViperApplicationSurface used by Designer,
+Preview and runtime. Themed controls render in a same-origin sandboxed iframe with
+scripts disabled and a restrictive resource policy. Each theme gets real html/body
+and rem sizing without touching IDE chrome. CSS is inserted with textContent.
+Unthemed projects retain their original rendering surface. Shared components.js
+adds common framework classes automatically while preserving Python control names.
+Explicit Inspector overrides take priority over theme rules. The shared anchor
+solver continues to own rectangles; rendered geometry, visibility and depth take
+priority over CSS. There is no continuous layout loop or second solver/renderer.
+
+Designer wrappers retain selection, logical-coordinate drag/resize, anchors,
+context menus, keyboard commands, palette drops and board pan/zoom inside the
+application document. Host transport remains exclusively assets/host.js. Native
+window decorations are outside CSS styling. WindowSettings.use_theme_background
+can defer to theme body styling or retain the authored window background.
+
+Both export formats include appearance.js and the project's portable CSS files.
+Python exports place themes/ beside app.py; the Windows packager puts themes/
+beside project.json in _internal/. packaged.launch reads these editable CSS files
+when present and falls back to embedded project CSS. Runtime does not need the
+CSS parser to apply already imported themes. Framework JavaScript widgets,
+arbitrary framework-specific markup, remote dependencies, and @import
+layer/supports qualifiers remain outside this implementation.
+
+Verification: 110 automated Python tests pass. Native Windows WebView2 Designer
+checks cover both real frameworks, editor isolation, rem sizing, overrides/reset,
+geometry, event execution, persistence, visibility, pan/zoom, drag/resize, context
+menus, menu shortcuts and Events tabs. Existing Designer and main/secondary
+runtime smoke groups pass. Relocated Python/Bootstrap and executable/Milligram
+ZIPs start in unrelated working directories, display framework styling, and
+execute saved button/change handlers. Linux GTK 4/WebKitGTK 6.0 remains unverified.
+
+## Theme palette and explicit color confirmation (2026-10-15)
+
+Native input[type=color] popups are replaced by a designer-owned modal with named
+theme swatches, a draft preview, optional custom CSS/hex and RGB controls, and
+explicit Apply/Cancel. Escape cancels. Palette buttons support keyboard navigation
+and a single tab stop. Inspector color buttons show computed effective colors,
+including theme-owned window backgrounds. Applying a window color automatically
+disables use_theme_background and suppresses a theme background image; restoring
+theme background removes both overrides. This fixes the previously masked picker
+selection and its stale swatch without changing IDE styling.
+
+Shared assets/theme-colors.js derives semantic roles from the active theme's
+computed CSS variables and sample controls, and exposes additional CSS colors.
+The same palette is built by ViperApplicationSurface in Designer, Preview and Run.
+Palette aliases are scoped to the app document/canvas, keeping IDE chrome isolated.
+Component color overrides use CSS var(--viper-color-ROLE, FALLBACK) references.
+WindowSettings.background_theme_color records the selected role while keeping
+background_color as a native-safe hex fallback. Roles follow theme switches;
+missing colors retain their saved fallback and custom colors stay fixed. Old
+projects default to an empty role. IDs, layout and Python source remain intact.
+
+Both export formats include the shared palette asset and preserve references in
+project JSON. Windows integration checks cover effective swatches, explicit draft
+confirmation/cancellation, automatic background override, keyboard selection,
+custom colors, both real framework palettes, imported CSS variables, gradients,
+theme switching, missing-role fallbacks and save/reload. Python model tests cover
+round-trip/migration and role validation. Native Linux verification is pending.
+
+## Pointer and keyboard button focus (2026-10-15)
+
+Milligram's :focus rule uses its hover color, leaving a clicked button dark even
+after mouse exit. The shared application surface now adapts theme CSSOM selectors
+so :focus visual rules require :focus-visible on button.component. Other controls
+retain pointer focus styling; :hover, :focus-visible and :focus-within are intact.
+The :where guard preserves selector specificity. Selector strings, escaped tokens,
+comments and attribute values are preserved. Nested CSS rule groups are adapted.
+Project CSS source stays unchanged, including existing embedded/imported themes.
+No blur handlers or lost keyboard focus are introduced; the same adaptation serves
+Preview, Run and exports. IDE chrome remains outside the adapted stylesheet.
+
+Windows CDP regression checks reproduce the original color mismatch with real
+pointer input, verify restored colors while focus remains, and check visible Tab
+focus and Enter activation of saved Python handlers. Designer integration also
+checks selector preservation and shared-surface adaptation. Linux is unverified.
+
+## Inspector ownership of global settings (2026-10-15)
+
+Application appearance (CSS theme, import, refresh and theme folder) now belongs
+inside project-properties alongside project name, description and startup window.
+The existing project selection visibility controls the whole group. Global theme
+controls appear only when the parent project is selected; window/component
+selection shows properties owned by that item. Component appearance and per-window
+background overrides stay with their owners. No model, theme application, event
+source, export format or rendering behavior changes.
