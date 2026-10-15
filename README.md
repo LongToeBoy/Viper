@@ -500,3 +500,7 @@ Python export passed both an isolated-interpreter launcher check using only its
 bundled Viper package and a relocated native Windows `app.py` test with real
 controls, saved imports and change handlers. Executable export remains available.
 Nested containers, theme editing, undo/redo, installers and Linux executable export are deferred.
+
+## License
+
+Viper is licensed under the [MIT License](LICENSE).

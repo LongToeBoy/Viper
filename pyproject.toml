@@ -7,6 +7,7 @@ name = "viper"
 version = "0.1.0"
 description = "Cross-platform visual application designer for Python apps"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = ["pywebview>=6.2.1; sys_platform == 'win32'", "tinycss2>=1.4,<2"]
 
