@@ -1,0 +1,4108 @@
+{
+  "schema_version": 2,
+  "project": {
+    "name": "Array \u2014 NumPy Studio",
+    "description": "An interactive NumPy data playground built entirely with Viper controls, anchors, CSS and saved Python events.",
+    "version": 1,
+    "windows": [
+      {
+        "name": "NumPy Studio",
+        "description": "",
+        "version": 1,
+        "canvas_width": 1200,
+        "canvas_height": 860,
+        "components": [
+          {
+            "id": "Sidebar",
+            "type": "panel",
+            "name": "Sidebar",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 216.0,
+              "height": 860.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "BrandMark",
+            "type": "label",
+            "name": "BrandMark",
+            "text": "\u2237",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 22.0,
+              "y": 30.0,
+              "width": 38.0,
+              "height": 38.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Brand",
+            "type": "label",
+            "name": "Brand",
+            "text": "ARRAY",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 72.0,
+              "y": 29.0,
+              "width": 126.0,
+              "height": 30.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "BrandCaption",
+            "type": "label",
+            "name": "BrandCaption",
+            "text": "A small data playground",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 24.0,
+              "y": 81.0,
+              "width": 176.0,
+              "height": 20.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "SidebarTitle",
+            "type": "label",
+            "name": "SidebarTitle",
+            "text": "Find the story\nin your numbers.",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 24.0,
+              "y": 121.0,
+              "width": 176.0,
+              "height": 58.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "PresetHeading",
+            "type": "label",
+            "name": "PresetHeading",
+            "text": "START WITH A SAMPLE",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 24.0,
+              "y": 204.0,
+              "width": 176.0,
+              "height": 20.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "PresetSales",
+            "type": "button",
+            "name": "PresetSales",
+            "text": "01   Weekly sales",
+            "layout": {
+              "x": 20.0,
+              "y": 20.0,
+              "width": 24.0,
+              "height": 12.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 14,
+              "font_weight": "600",
+              "text_color": "#ffffff",
+              "background_color": "#2563eb",
+              "border_radius": 10,
+              "border_width": 1,
+              "border_color": "#1d4ed8",
+              "padding": 10
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "click": "studio_action"
+            },
+            "box": {
+              "x": 20.0,
+              "y": 242.0,
+              "width": 176.0,
+              "height": 42.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "PresetSensor",
+            "type": "button",
+            "name": "PresetSensor",
+            "text": "02   Sensor readings",
+            "layout": {
+              "x": 20.0,
+              "y": 20.0,
+              "width": 24.0,
+              "height": 12.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 14,
+              "font_weight": "600",
+              "text_color": "#ffffff",
+              "background_color": "#2563eb",
+              "border_radius": 10,
+              "border_width": 1,
+              "border_color": "#1d4ed8",
+              "padding": 10
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "click": "studio_action"
+            },
+            "box": {
+              "x": 20.0,
+              "y": 296.0,
+              "width": 176.0,
+              "height": 42.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "PresetOutlier",
+            "type": "button",
+            "name": "PresetOutlier",
+            "text": "03   Spot the outlier",
+            "layout": {
+              "x": 20.0,
+              "y": 20.0,
+              "width": 24.0,
+              "height": 12.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 14,
+              "font_weight": "600",
+              "text_color": "#ffffff",
+              "background_color": "#2563eb",
+              "border_radius": 10,
+              "border_width": 1,
+              "border_color": "#1d4ed8",
+              "padding": 10
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "click": "studio_action"
+            },
+            "box": {
+              "x": 20.0,
+              "y": 350.0,
+              "width": 176.0,
+              "height": 42.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Generate",
+            "type": "button",
+            "name": "Generate",
+            "text": "\u21bb    Generate new data",
+            "layout": {
+              "x": 20.0,
+              "y": 20.0,
+              "width": 24.0,
+              "height": 12.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 14,
+              "font_weight": "600",
+              "text_color": "#ffffff",
+              "background_color": "#2563eb",
+              "border_radius": 10,
+              "border_width": 1,
+              "border_color": "#1d4ed8",
+              "padding": 10
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "click": "studio_action"
+            },
+            "box": {
+              "x": 20.0,
+              "y": 424.0,
+              "width": 176.0,
+              "height": 42.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "SidebarIntro",
+            "type": "label",
+            "name": "SidebarIntro",
+            "text": "Choose a sample, or make\nsomething of your own.",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 24.0,
+              "y": 488.0,
+              "width": 172.0,
+              "height": 50.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ModuleCard",
+            "type": "panel",
+            "name": "ModuleCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 20.0,
+              "y": 616.0,
+              "width": 176.0,
+              "height": 154.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "ModuleEyebrow",
+            "type": "label",
+            "name": "ModuleEyebrow",
+            "text": "POWERED BY PYTHON",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 34.0,
+              "y": 634.0,
+              "width": 150.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ImportCode",
+            "type": "label",
+            "name": "ImportCode",
+            "text": "import numpy as np",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 34.0,
+              "y": 667.0,
+              "width": 152.0,
+              "height": 24.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ModuleNote",
+            "type": "label",
+            "name": "ModuleNote",
+            "text": "Real arrays. Real statistics.\nEditable Python events.",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 34.0,
+              "y": 707.0,
+              "width": 150.0,
+              "height": 42.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "SidebarFoot",
+            "type": "label",
+            "name": "SidebarFoot",
+            "text": "Made with Viper  /  Demo 01",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 24.0,
+              "y": 812.0,
+              "width": 180.0,
+              "height": 20.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Eyebrow",
+            "type": "label",
+            "name": "Eyebrow",
+            "text": "NUMPY STUDIO  /  INTERACTIVE DEMO",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 252.0,
+              "y": 28.0,
+              "width": 600.0,
+              "height": 22.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Title",
+            "type": "label",
+            "name": "Title",
+            "text": "A little data. A lot of insight.",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 252.0,
+              "y": 60.0,
+              "width": 710.0,
+              "height": 46.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Subtitle",
+            "type": "label",
+            "name": "Subtitle",
+            "text": "Explore a dataset, compare its shape, and let Python do the math.",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 252.0,
+              "y": 116.0,
+              "width": 750.0,
+              "height": 22.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ModuleBadge",
+            "type": "label",
+            "name": "ModuleBadge",
+            "text": "NumPy 2.5.2  /  live",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 998.0,
+              "y": 32.0,
+              "width": 166.0,
+              "height": 28.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "CountCard",
+            "type": "panel",
+            "name": "CountCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 252.0,
+              "y": 158.0,
+              "width": 210.0,
+              "height": 112.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "CountCaption",
+            "type": "label",
+            "name": "CountCaption",
+            "text": "SAMPLE SIZE",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 270.0,
+              "y": 173.0,
+              "width": 178.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "CountValue",
+            "type": "label",
+            "name": "CountValue",
+            "text": "24",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 270.0,
+              "y": 196.0,
+              "width": 178.0,
+              "height": 40.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "CountNote",
+            "type": "label",
+            "name": "CountNote",
+            "text": "observations in your array",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 270.0,
+              "y": 243.0,
+              "width": 178.0,
+              "height": 15.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "MeanCard",
+            "type": "panel",
+            "name": "MeanCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 486.0,
+              "y": 158.0,
+              "width": 210.0,
+              "height": 112.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "MeanCaption",
+            "type": "label",
+            "name": "MeanCaption",
+            "text": "MEAN",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 504.0,
+              "y": 173.0,
+              "width": 178.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "MeanValue",
+            "type": "label",
+            "name": "MeanValue",
+            "text": "69.5",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "change": "mean_changed"
+            },
+            "box": {
+              "x": 504.0,
+              "y": 196.0,
+              "width": 178.0,
+              "height": 40.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "MeanNote",
+            "type": "label",
+            "name": "MeanNote",
+            "text": "the average value",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 504.0,
+              "y": 243.0,
+              "width": 178.0,
+              "height": 15.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "MedianCard",
+            "type": "panel",
+            "name": "MedianCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 720.0,
+              "y": 158.0,
+              "width": 210.0,
+              "height": 112.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "MedianCaption",
+            "type": "label",
+            "name": "MedianCaption",
+            "text": "MEDIAN",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 738.0,
+              "y": 173.0,
+              "width": 178.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "MedianValue",
+            "type": "label",
+            "name": "MedianValue",
+            "text": "70",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 738.0,
+              "y": 196.0,
+              "width": 178.0,
+              "height": 40.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "MedianNote",
+            "type": "label",
+            "name": "MedianNote",
+            "text": "the middle of the dataset",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 738.0,
+              "y": 243.0,
+              "width": 178.0,
+              "height": 15.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "SpreadCard",
+            "type": "panel",
+            "name": "SpreadCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 954.0,
+              "y": 158.0,
+              "width": 210.0,
+              "height": 112.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "SpreadCaption",
+            "type": "label",
+            "name": "SpreadCaption",
+            "text": "STANDARD DEVIATION",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 972.0,
+              "y": 173.0,
+              "width": 178.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "SpreadValue",
+            "type": "label",
+            "name": "SpreadValue",
+            "text": "14.05",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 972.0,
+              "y": 196.0,
+              "width": 178.0,
+              "height": 40.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "SpreadNote",
+            "type": "label",
+            "name": "SpreadNote",
+            "text": "population spread \u00b7 ddof=0",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 972.0,
+              "y": 243.0,
+              "width": 178.0,
+              "height": 15.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "DataCard",
+            "type": "panel",
+            "name": "DataCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 252.0,
+              "y": 294.0,
+              "width": 912.0,
+              "height": 172.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "DataTitle",
+            "type": "label",
+            "name": "DataTitle",
+            "text": "Your dataset",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 312.0,
+              "width": 240.0,
+              "height": 26.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "DataHint",
+            "type": "label",
+            "name": "DataHint",
+            "text": "COMMAS, SPACES OR SEMICOLONS",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 868.0,
+              "y": 316.0,
+              "width": 276.0,
+              "height": 20.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "DataInput",
+            "type": "text_input",
+            "name": "DataInput",
+            "text": "42, 48, 51, 45, 62, 58, 65, 71, 68, 74, 82, 77, 63, 59, 66, 72, 85, 91, 79, 83, 69, 76, 88, 94",
+            "layout": {
+              "x": 30.0,
+              "y": 55.0,
+              "width": 30.0,
+              "height": 10.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 14,
+              "font_weight": "400",
+              "text_color": "#f3f4f6",
+              "background_color": "#0f172a",
+              "border_radius": 10,
+              "border_width": 1,
+              "border_color": "#475569",
+              "padding": 12
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "change": "studio_action"
+            },
+            "box": {
+              "x": 274.0,
+              "y": 354.0,
+              "width": 700.0,
+              "height": 44.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Analyze",
+            "type": "button",
+            "name": "Analyze",
+            "text": "Analyze data  \u2192",
+            "layout": {
+              "x": 20.0,
+              "y": 20.0,
+              "width": 24.0,
+              "height": 12.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 14,
+              "font_weight": "600",
+              "text_color": "#ffffff",
+              "background_color": "#2563eb",
+              "border_radius": 10,
+              "border_width": 1,
+              "border_color": "#1d4ed8",
+              "padding": 10
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "click": "studio_action"
+            },
+            "box": {
+              "x": 994.0,
+              "y": 354.0,
+              "width": 150.0,
+              "height": 44.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "InputStatus",
+            "type": "label",
+            "name": "InputStatus",
+            "text": "24 values ready.  Raw values \u00b7 population standard deviation \u00b7 8 equal-width bins",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 417.0,
+              "width": 868.0,
+              "height": 26.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ErrorMessage",
+            "type": "label",
+            "name": "ErrorMessage",
+            "text": "",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": false,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 417.0,
+              "width": 868.0,
+              "height": 26.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ChartCard",
+            "type": "panel",
+            "name": "ChartCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 252.0,
+              "y": 490.0,
+              "width": 544.0,
+              "height": 298.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "ChartTitle",
+            "type": "label",
+            "name": "ChartTitle",
+            "text": "Distribution",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 508.0,
+              "width": 386.0,
+              "height": 26.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ChartHint",
+            "type": "label",
+            "name": "ChartHint",
+            "text": "How often values fall in each range",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 538.0,
+              "width": 420.0,
+              "height": 20.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "ChartAxis",
+            "type": "label",
+            "name": "ChartAxis",
+            "text": "VALUE RANGE",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 568.0,
+              "width": 112.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "CountAxis",
+            "type": "label",
+            "name": "CountAxis",
+            "text": "COUNT",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 734.0,
+              "y": 568.0,
+              "width": 42.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin0",
+            "type": "label",
+            "name": "Bin0",
+            "text": "42 \u2013 48.5",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 595.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar0",
+            "type": "label",
+            "name": "Bar0",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 595.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency0",
+            "type": "label",
+            "name": "Frequency0",
+            "text": "3",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 595.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin1",
+            "type": "label",
+            "name": "Bin1",
+            "text": "48.5 \u2013 55",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 617.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar1",
+            "type": "label",
+            "name": "Bar1",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 617.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency1",
+            "type": "label",
+            "name": "Frequency1",
+            "text": "1",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 617.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin2",
+            "type": "label",
+            "name": "Bin2",
+            "text": "55 \u2013 61.5",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 639.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar2",
+            "type": "label",
+            "name": "Bar2",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 639.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency2",
+            "type": "label",
+            "name": "Frequency2",
+            "text": "2",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 639.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin3",
+            "type": "label",
+            "name": "Bin3",
+            "text": "61.5 \u2013 68",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 661.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar3",
+            "type": "label",
+            "name": "Bar3",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 661.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency3",
+            "type": "label",
+            "name": "Frequency3",
+            "text": "4",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 661.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin4",
+            "type": "label",
+            "name": "Bin4",
+            "text": "68 \u2013 74.5",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 683.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar4",
+            "type": "label",
+            "name": "Bar4",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 683.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency4",
+            "type": "label",
+            "name": "Frequency4",
+            "text": "5",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 683.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin5",
+            "type": "label",
+            "name": "Bin5",
+            "text": "74.5 \u2013 81",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 705.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar5",
+            "type": "label",
+            "name": "Bar5",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 705.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency5",
+            "type": "label",
+            "name": "Frequency5",
+            "text": "3",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 705.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin6",
+            "type": "label",
+            "name": "Bin6",
+            "text": "81 \u2013 87.5",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 727.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar6",
+            "type": "label",
+            "name": "Bar6",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 727.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency6",
+            "type": "label",
+            "name": "Frequency6",
+            "text": "3",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 727.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bin7",
+            "type": "label",
+            "name": "Bin7",
+            "text": "87.5 \u2013 94",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 274.0,
+              "y": 749.0,
+              "width": 136.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Bar7",
+            "type": "label",
+            "name": "Bar7",
+            "text": "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 418.0,
+              "y": 749.0,
+              "width": 298.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Frequency7",
+            "type": "label",
+            "name": "Frequency7",
+            "text": "3",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 736.0,
+              "y": 749.0,
+              "width": 34.0,
+              "height": 16.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "InsightCard",
+            "type": "panel",
+            "name": "InsightCard",
+            "text": "",
+            "layout": {
+              "x": 55.0,
+              "y": 20.0,
+              "width": 25.0,
+              "height": 40.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#f9fafb",
+              "background_color": "#1f2937",
+              "border_radius": 14,
+              "border_width": 1,
+              "border_color": "#374151",
+              "padding": 14
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 820.0,
+              "y": 490.0,
+              "width": 344.0,
+              "height": 298.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 0,
+            "style_overrides": {}
+          },
+          {
+            "id": "InsightTitle",
+            "type": "label",
+            "name": "InsightTitle",
+            "text": "A closer look",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 844.0,
+              "y": 508.0,
+              "width": 296.0,
+              "height": 28.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "InsightText",
+            "type": "label",
+            "name": "InsightText",
+            "text": "No outliers beyond the IQR fences.\nLoad the outlier sample to see the difference.",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 844.0,
+              "y": 553.0,
+              "width": 296.0,
+              "height": 78.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "RangeHeading",
+            "type": "label",
+            "name": "RangeHeading",
+            "text": "MINIMUM  \u2192  MAXIMUM",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 844.0,
+              "y": 639.0,
+              "width": 296.0,
+              "height": 18.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "RangeValue",
+            "type": "label",
+            "name": "RangeValue",
+            "text": "42  \u2192  94",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 844.0,
+              "y": 663.0,
+              "width": 296.0,
+              "height": 30.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "OperationCode",
+            "type": "label",
+            "name": "OperationCode",
+            "text": "np.histogram(x, bins=8)",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 844.0,
+              "y": 706.0,
+              "width": 296.0,
+              "height": 30.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "Standardize",
+            "type": "checkbox",
+            "name": "Standardize",
+            "text": "Standardize values (z-score)",
+            "layout": {
+              "x": 20.0,
+              "y": 70.0,
+              "width": 24.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 14,
+              "font_weight": "500",
+              "text_color": "#e2e8f0",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#475569",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {
+              "change": "studio_action"
+            },
+            "box": {
+              "x": 844.0,
+              "y": 749.0,
+              "width": 296.0,
+              "height": 24.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "FooterStatus",
+            "type": "label",
+            "name": "FooterStatus",
+            "text": "Analysis refreshed \u00b7 mean change event received",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 252.0,
+              "y": 812.0,
+              "width": 600.0,
+              "height": 20.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          },
+          {
+            "id": "FooterCredit",
+            "type": "label",
+            "name": "FooterCredit",
+            "text": "PYTHON EVENTS  \u00b7  SHARED VIPER RUNTIME",
+            "layout": {
+              "x": 30.0,
+              "y": 40.0,
+              "width": 30.0,
+              "height": 8.0,
+              "min_width": 1,
+              "min_height": 1
+            },
+            "style": {
+              "font_size": 16,
+              "font_weight": "500",
+              "text_color": "#e5e7eb",
+              "background_color": "#111827",
+              "border_radius": 8,
+              "border_width": 0,
+              "border_color": "#374151",
+              "padding": 8
+            },
+            "visible": true,
+            "enabled": true,
+            "event_handlers": {},
+            "box": {
+              "x": 856.0,
+              "y": 812.0,
+              "width": 308.0,
+              "height": 20.0,
+              "reference_width": 1200.0,
+              "reference_height": 860.0
+            },
+            "size_mode": "stretch",
+            "depth": 2,
+            "style_overrides": {}
+          }
+        ],
+        "window": {
+          "name": "NumPyStudio",
+          "title": "Array \u2014 NumPy Studio",
+          "icon": "",
+          "resizable": true,
+          "decorated": true,
+          "min_width": 1120,
+          "min_height": 820,
+          "state": "normal",
+          "background_color": "#f3f6f5",
+          "use_theme_background": true,
+          "background_theme_color": ""
+        },
+        "links": [
+          {
+            "id": "link_BrandMark",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "BrandMark",
+              "edge": "top"
+            },
+            "distance_x": -0.05583333333333333,
+            "distance_y": 0.03488372093023256
+          },
+          {
+            "id": "link_Brand",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Brand",
+              "edge": "top"
+            },
+            "distance_x": 0.0225,
+            "distance_y": 0.03372093023255814
+          },
+          {
+            "id": "link_BrandCaption",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "BrandCaption",
+              "edge": "top"
+            },
+            "distance_x": 0.0033333333333333335,
+            "distance_y": 0.0941860465116279
+          },
+          {
+            "id": "link_SidebarTitle",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "SidebarTitle",
+              "edge": "top"
+            },
+            "distance_x": 0.0033333333333333335,
+            "distance_y": 0.14069767441860465
+          },
+          {
+            "id": "link_PresetHeading",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "PresetHeading",
+              "edge": "top"
+            },
+            "distance_x": 0.0033333333333333335,
+            "distance_y": 0.2372093023255814
+          },
+          {
+            "id": "link_PresetSales",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "PresetSales",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.2813953488372093
+          },
+          {
+            "id": "link_PresetSensor",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "PresetSensor",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.34418604651162793
+          },
+          {
+            "id": "link_PresetOutlier",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "PresetOutlier",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.4069767441860465
+          },
+          {
+            "id": "link_Generate",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Generate",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.4930232558139535
+          },
+          {
+            "id": "link_SidebarIntro",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "SidebarIntro",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.5674418604651162
+          },
+          {
+            "id": "link_ModuleCard",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ModuleCard",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.7162790697674418
+          },
+          {
+            "id": "link_ModuleEyebrow",
+            "axis": "both",
+            "a": {
+              "body": "ModuleCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ModuleEyebrow",
+              "edge": "top"
+            },
+            "distance_x": 0.0008333333333333334,
+            "distance_y": 0.020930232558139535
+          },
+          {
+            "id": "link_ImportCode",
+            "axis": "both",
+            "a": {
+              "body": "ModuleCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ImportCode",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.05930232558139535
+          },
+          {
+            "id": "link_ModuleNote",
+            "axis": "both",
+            "a": {
+              "body": "ModuleCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ModuleNote",
+              "edge": "top"
+            },
+            "distance_x": 0.0008333333333333334,
+            "distance_y": 0.1058139534883721
+          },
+          {
+            "id": "link_SidebarFoot",
+            "axis": "both",
+            "a": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "b": {
+              "body": "SidebarFoot",
+              "edge": "top"
+            },
+            "distance_x": 0.005,
+            "distance_y": 0.9441860465116279
+          },
+          {
+            "id": "link_CountCaption",
+            "axis": "both",
+            "a": {
+              "body": "CountCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "CountCaption",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.01744186046511628
+          },
+          {
+            "id": "link_CountValue",
+            "axis": "both",
+            "a": {
+              "body": "CountCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "CountValue",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.044186046511627906
+          },
+          {
+            "id": "link_CountNote",
+            "axis": "both",
+            "a": {
+              "body": "CountCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "CountNote",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.09883720930232558
+          },
+          {
+            "id": "link_MeanCaption",
+            "axis": "both",
+            "a": {
+              "body": "MeanCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "MeanCaption",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.01744186046511628
+          },
+          {
+            "id": "link_MeanValue",
+            "axis": "both",
+            "a": {
+              "body": "MeanCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "MeanValue",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.044186046511627906
+          },
+          {
+            "id": "link_MeanNote",
+            "axis": "both",
+            "a": {
+              "body": "MeanCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "MeanNote",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.09883720930232558
+          },
+          {
+            "id": "link_MedianCaption",
+            "axis": "both",
+            "a": {
+              "body": "MedianCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "MedianCaption",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.01744186046511628
+          },
+          {
+            "id": "link_MedianValue",
+            "axis": "both",
+            "a": {
+              "body": "MedianCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "MedianValue",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.044186046511627906
+          },
+          {
+            "id": "link_MedianNote",
+            "axis": "both",
+            "a": {
+              "body": "MedianCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "MedianNote",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.09883720930232558
+          },
+          {
+            "id": "link_SpreadCaption",
+            "axis": "both",
+            "a": {
+              "body": "SpreadCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "SpreadCaption",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.01744186046511628
+          },
+          {
+            "id": "link_SpreadValue",
+            "axis": "both",
+            "a": {
+              "body": "SpreadCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "SpreadValue",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.044186046511627906
+          },
+          {
+            "id": "link_SpreadNote",
+            "axis": "both",
+            "a": {
+              "body": "SpreadCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "SpreadNote",
+              "edge": "top"
+            },
+            "distance_x": 0.0016666666666666668,
+            "distance_y": 0.09883720930232558
+          },
+          {
+            "id": "link_DataTitle",
+            "axis": "both",
+            "a": {
+              "body": "DataCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "DataTitle",
+              "edge": "top"
+            },
+            "distance_x": -0.26166666666666666,
+            "distance_y": 0.020930232558139535
+          },
+          {
+            "id": "link_DataHint",
+            "axis": "both",
+            "a": {
+              "body": "DataCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "DataHint",
+              "edge": "top"
+            },
+            "distance_x": 0.24833333333333332,
+            "distance_y": 0.02558139534883721
+          },
+          {
+            "id": "link_DataInput",
+            "axis": "both",
+            "a": {
+              "body": "DataCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "DataInput",
+              "edge": "top"
+            },
+            "distance_x": -0.07,
+            "distance_y": 0.06976744186046512
+          },
+          {
+            "id": "link_Analyze",
+            "axis": "both",
+            "a": {
+              "body": "DataCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Analyze",
+              "edge": "top"
+            },
+            "distance_x": 0.30083333333333334,
+            "distance_y": 0.06976744186046512
+          },
+          {
+            "id": "link_InputStatus",
+            "axis": "both",
+            "a": {
+              "body": "DataCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "InputStatus",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.14302325581395348
+          },
+          {
+            "id": "link_ErrorMessage",
+            "axis": "both",
+            "a": {
+              "body": "DataCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ErrorMessage",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.14302325581395348
+          },
+          {
+            "id": "link_ChartTitle",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ChartTitle",
+              "edge": "top"
+            },
+            "distance_x": -0.0475,
+            "distance_y": 0.020930232558139535
+          },
+          {
+            "id": "link_ChartHint",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ChartHint",
+              "edge": "top"
+            },
+            "distance_x": -0.03333333333333333,
+            "distance_y": 0.05581395348837209
+          },
+          {
+            "id": "link_ChartAxis",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "ChartAxis",
+              "edge": "top"
+            },
+            "distance_x": -0.16166666666666665,
+            "distance_y": 0.09069767441860466
+          },
+          {
+            "id": "link_CountAxis",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "CountAxis",
+              "edge": "top"
+            },
+            "distance_x": 0.1925,
+            "distance_y": 0.09069767441860466
+          },
+          {
+            "id": "link_Bin0",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin0",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.12209302325581395
+          },
+          {
+            "id": "link_Bar0",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar0",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.12209302325581395
+          },
+          {
+            "id": "link_Frequency0",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency0",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.12209302325581395
+          },
+          {
+            "id": "link_Bin1",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin1",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.14767441860465116
+          },
+          {
+            "id": "link_Bar1",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar1",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.14767441860465116
+          },
+          {
+            "id": "link_Frequency1",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency1",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.14767441860465116
+          },
+          {
+            "id": "link_Bin2",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin2",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.17325581395348838
+          },
+          {
+            "id": "link_Bar2",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar2",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.17325581395348838
+          },
+          {
+            "id": "link_Frequency2",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency2",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.17325581395348838
+          },
+          {
+            "id": "link_Bin3",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin3",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.19883720930232557
+          },
+          {
+            "id": "link_Bar3",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar3",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.19883720930232557
+          },
+          {
+            "id": "link_Frequency3",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency3",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.19883720930232557
+          },
+          {
+            "id": "link_Bin4",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin4",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.22441860465116278
+          },
+          {
+            "id": "link_Bar4",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar4",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.22441860465116278
+          },
+          {
+            "id": "link_Frequency4",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency4",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.22441860465116278
+          },
+          {
+            "id": "link_Bin5",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin5",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.25
+          },
+          {
+            "id": "link_Bar5",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar5",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.25
+          },
+          {
+            "id": "link_Frequency5",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency5",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.25
+          },
+          {
+            "id": "link_Bin6",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin6",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.2755813953488372
+          },
+          {
+            "id": "link_Bar6",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar6",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.2755813953488372
+          },
+          {
+            "id": "link_Frequency6",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency6",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.2755813953488372
+          },
+          {
+            "id": "link_Bin7",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bin7",
+              "edge": "top"
+            },
+            "distance_x": -0.15166666666666667,
+            "distance_y": 0.30116279069767443
+          },
+          {
+            "id": "link_Bar7",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Bar7",
+              "edge": "top"
+            },
+            "distance_x": 0.035833333333333335,
+            "distance_y": 0.30116279069767443
+          },
+          {
+            "id": "link_Frequency7",
+            "axis": "both",
+            "a": {
+              "body": "ChartCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Frequency7",
+              "edge": "top"
+            },
+            "distance_x": 0.19083333333333333,
+            "distance_y": 0.30116279069767443
+          },
+          {
+            "id": "link_InsightTitle",
+            "axis": "both",
+            "a": {
+              "body": "InsightCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "InsightTitle",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.020930232558139535
+          },
+          {
+            "id": "link_InsightText",
+            "axis": "both",
+            "a": {
+              "body": "InsightCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "InsightText",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.07325581395348837
+          },
+          {
+            "id": "link_RangeHeading",
+            "axis": "both",
+            "a": {
+              "body": "InsightCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "RangeHeading",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.17325581395348838
+          },
+          {
+            "id": "link_RangeValue",
+            "axis": "both",
+            "a": {
+              "body": "InsightCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "RangeValue",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.20116279069767443
+          },
+          {
+            "id": "link_OperationCode",
+            "axis": "both",
+            "a": {
+              "body": "InsightCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "OperationCode",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.25116279069767444
+          },
+          {
+            "id": "link_Standardize",
+            "axis": "both",
+            "a": {
+              "body": "InsightCard",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Standardize",
+              "edge": "top"
+            },
+            "distance_x": 0.0,
+            "distance_y": 0.30116279069767443
+          },
+          {
+            "id": "sidebar_top",
+            "axis": "both",
+            "a": {
+              "body": "$window",
+              "edge": "top"
+            },
+            "b": {
+              "body": "Sidebar",
+              "edge": "top"
+            },
+            "distance_x": -0.41,
+            "distance_y": 0
+          },
+          {
+            "id": "sidebar_bottom",
+            "axis": "both",
+            "a": {
+              "body": "$window",
+              "edge": "bottom"
+            },
+            "b": {
+              "body": "Sidebar",
+              "edge": "bottom"
+            },
+            "distance_x": -0.41,
+            "distance_y": 0
+          }
+        ],
+        "form_id": "studio",
+        "imports": "# Window-owned dependency, available to every saved handler.\nimport numpy as np\n"
+      }
+    ],
+    "startup_window_id": "studio",
+    "event_code": {
+      "studio_action": "\"\"\"Saved as editable event source in project.json; NumPy comes from Window imports.\n\nOnly Viper control properties are changed. No HTML, host APIs or custom renderer.\n\"\"\"\n\n\ndef studio_action(event):\n    presets = {\n        'PresetSales': '42, 48, 51, 45, 62, 58, 65, 71, 68, 74, 82, 77, 63, 59, 66, 72, 85, 91, 79, 83, 69, 76, 88, 94',\n        'PresetSensor': '19.8, 20.1, 20.3, 19.9, 20.2, 20.0, 19.7, 20.4, 20.1, 19.8, 20.3, 20.2, 19.9, 20.0, 20.1, 20.4',\n        'PresetOutlier': '12, 14, 13, 15, 11, 14, 13, 12, 16, 13, 14, 12, 15, 13, 14, 95',\n    }\n    sender = event.sender.Name\n    if sender in presets:\n        DataInput.Text = presets[sender]\n    elif sender == 'Generate':\n        sample = np.random.default_rng().normal(65, 14, 32).round(1)\n        DataInput.Text = ', '.join(str(value) for value in sample)\n\n    # Input changes caused by a preset also notify this handler. Analyze once:\n    # the original click already sees the new value and returns all UI patches.\n    if sender == 'DataInput' and event.get('property') == 'Text':\n        return\n\n    try:\n        tokens = DataInput.Text.replace(',', ' ').replace(';', ' ').split()\n        if not 2 <= len(tokens) <= 2000:\n            raise ValueError('Enter 2 to 2,000 numbers, separated by commas or spaces.')\n        values = np.array([float(token) for token in tokens], dtype=float)\n        if not np.all(np.isfinite(values)) or np.max(np.abs(values)) > 1e12:\n            raise ValueError('Use finite numbers between -1e12 and 1e12.')\n    except ValueError as error:\n        message = str(error) if 'Enter ' in str(error) or 'Use finite' in str(error) else 'One value is not a number. Try 12, 18, 24, 30.'\n        ErrorMessage.Text = message\n        ErrorMessage.Visible = True\n        InputStatus.Visible = False\n        FooterStatus.Text = 'Check your dataset. The last valid analysis is still shown.'\n        return\n\n    ErrorMessage.Visible = False\n    InputStatus.Visible = True\n    normalized = Standardize.Checked\n    spread = float(np.std(values))\n    if normalized:\n        values = (values - np.mean(values)) / spread if spread > 0 else np.zeros_like(values)\n\n    def number(value):\n        # Avoid negative zero and keep very small/large values readable.\n        value = float(value)\n        if value == 0:\n            value = 0.0\n        if (0 < abs(value) < 0.01) or abs(value) >= 100000:\n            return f'{value:.2e}'\n        return f'{value:,.2f}'.rstrip('0').rstrip('.')\n\n    mean, median, std = float(np.mean(values)), float(np.median(values)), float(np.std(values))\n    if normalized:\n        # Suppress floating-point residue around zero after centering, while\n        # preserving genuinely small values in an untransformed dataset.\n        mean = 0.0 if abs(mean) < 1e-10 else mean\n        median = 0.0 if abs(median) < 1e-10 else median\n    CountValue.Text = str(values.size)\n    MeanValue.Text = number(mean)\n    MedianValue.Text = number(median)\n    SpreadValue.Text = number(std)\n    RangeValue.Text = f'{number(np.min(values))}  \u2192  {number(np.max(values))}'\n    counts, edges = np.histogram(values, bins=8)\n    peak = max(1, int(np.max(counts)))\n    for index, count in enumerate(counts):\n        event.controls[f'Bin{index}'].Text = f'{edges[index]:.3g} \u2013 {edges[index + 1]:.3g}'\n        event.controls[f'Bar{index}'].Text = '\u2501' * max(1, round(28 * int(count) / peak)) if count else ''\n        event.controls[f'Frequency{index}'].Text = str(int(count))\n\n    q1, q3 = np.percentile(values, [25, 75])\n    iqr = q3 - q1\n    outliers = int(np.count_nonzero((values < q1 - 1.5 * iqr) | (values > q3 + 1.5 * iqr)))\n    if std == 0:\n        insight = 'Every value is the same.\\nThere is no variation in this dataset.'\n    elif outliers:\n        insight = f'{outliers} potential outlier' + ('s' if outliers != 1 else '') + ' beyond the IQR fences.\\nCompare the mean with the median.'\n    else:\n        insight = 'No outliers beyond the IQR fences.\\nLoad the outlier sample to see the difference.'\n    InsightText.Text = insight\n    ChartTitle.Text = 'Distribution' + (' \u00b7 standardized' if normalized else '')\n    mode = 'Z-scores: centered on 0, population standard deviation 1.' if normalized and spread > 0 else (\n        'Constant data maps to zeros when standardized.' if normalized else 'Raw values \u00b7 population standard deviation \u00b7 8 equal-width bins')\n    InputStatus.Text = f'{values.size} values ready.  {mode}'\n    OperationCode.Text = '(x - np.mean(x)) / np.std(x)' if normalized else 'np.histogram(x, bins=8)'\n    ModuleBadge.Text = f'NumPy {np.__version__}  /  live'\n    FooterStatus.Text = 'Analysis refreshed in Python.'\n",
+      "mean_changed": "def mean_changed(event):\n    \"\"\"Demonstrates Viper's Python property-change notification chain.\"\"\"\n    FooterStatus.Text = 'Analysis refreshed \u00b7 mean change event received'\n"
+    },
+    "themes": {
+      "studio.css": {
+        "name": "NumPy Studio",
+        "css": "/* NumPy Studio: local, embedded application theme. No network resources. */\n:root {\n  --primary: #087f70;\n  --background: #f3f6f5;\n  --text: #172e2a;\n}\nbody { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--background); color: var(--text); }\n.component { justify-content: flex-start; line-height: 1.4; }\nspan.component { white-space: pre-wrap; }\nsection.component { background: #fff; border: 1px solid #e0e9e5; border-radius: 16px; box-shadow: 0 4px 18px #183c2c05; }\nbutton.component { cursor: pointer; border-radius: 10px; border: 1px solid #dce6e1; background: #fff; color: #173d35; font: 600 13px 'Segoe UI', sans-serif; justify-content: center; }\nbutton.component:hover { background: #eaf5f0; border-color: #9acdbb; }\nbutton.component:focus-visible, input.component:focus-visible { outline: 3px solid #54bea4; outline-offset: 3px; }\ninput.component { background: #f8faf9; border: 1px solid #d6e2dc; border-radius: 9px; padding: 0 14px; color: #274139; font: 13px Consolas, monospace; }\nlabel.component { font-size: 12px; gap: 9px; color: #526c63; cursor: pointer; }\ninput[type=checkbox] { accent-color: #087f70; width: 16px; height: 16px; }\nsection[data-id=Sidebar] { background: #122e28; border: 0; border-radius: 0; }\n[data-id=BrandMark] { background: #b5ebcf; color: #153c30; border-radius: 11px; justify-content: center; font-size: 27px; }\n[data-id=Brand] { color: #f0fff6; font-size: 22px; font-weight: 700; letter-spacing: 3px; }\n[data-id=BrandCaption], [data-id=SidebarFoot] { color: #91b4a5; font-size: 11px; }\n[data-id=PresetHeading] { color: #8cafa0; font-size: 10px; font-weight: 600; letter-spacing: 1.8px; }\n[data-id=SidebarTitle] { color: #e3f4e9; font-size: 19px; font-weight: 600; }\n[data-id=SidebarIntro] { color: #9ebeb0; font-size: 12px; }\nbutton[data-id^=Preset], button[data-id=Generate] { background: #1c3d33; border: 1px solid #35564a; color: #d8eee1; justify-content: flex-start; padding-left: 14px; }\nbutton[data-id^=Preset]:hover, button[data-id=Generate]:hover { background: #31594a; border-color: #6b9e87; }\nsection[data-id=ModuleCard] { background: #1b3d32; border-color: #365a49; border-radius: 12px; }\n[data-id=ModuleEyebrow] { color: #a6d9bc; font-size: 10px; letter-spacing: 1.5px; }\n[data-id=ImportCode] { color: #c4f3d7; font: 12px Consolas, monospace; }\n[data-id=ModuleNote] { color: #9fc1ae; font-size: 12px; }\n[data-id=Eyebrow] { color: #087f70; font-size: 10px; letter-spacing: 2px; font-weight: 700; }\n[data-id=Title] { font-size: 31px; font-weight: 650; letter-spacing: -1px; }\n[data-id=Subtitle] { color: #6b7e75; font-size: 13px; }\n[data-id=ModuleBadge] { color: #087f70; background: #e2f2eb; font-size: 11px; border-radius: 16px; justify-content: center; font-weight: 600; }\n[data-id$=Caption]:not([data-id=BrandCaption]) { color: #71837a; font-size: 11px; }\n[data-id$=Value] { font-size: 32px; font-weight: 600; letter-spacing: -1px; font-variant-numeric: tabular-nums; }\n[data-id=MeanValue] { color: #087f70; }\nsection[data-id=MeanCard] { border-color: #b4d9c9; background: #f6fffa; }\n[data-id$=Note] { font-size: 10px; color: #809087; }\n[data-id=ModuleNote] { font-size: 12px; color: #9fc1ae; }\n[data-id=DataTitle], [data-id=ChartTitle], [data-id=InsightTitle] { font-weight: 600; font-size: 16px; }\n[data-id=DataHint], [data-id=ChartHint], [data-id=ChartAxis], [data-id=CountAxis], [data-id=InputStatus] { color: #7a8e83; font-size: 11px; }\nbutton[data-id=Analyze] { background: #087f70; border-color: #087f70; color: #fff; }\nbutton[data-id=Analyze]:hover { background: #066859; }\n[data-id=ErrorMessage] { color: #ad483b; font-size: 12px; }\n[data-id^=Bin] { font: 10px Consolas, monospace; color: #72887b; }\n[data-id^=Bar] { background: #edf5ef; border-radius: 4px; color: #2b9c79; font: 16px Consolas, monospace; letter-spacing: -1px; padding-left: 5px; white-space: nowrap; overflow: hidden; }\n[data-id^=Frequency] { color: #557466; font: 11px Consolas, monospace; justify-content: flex-end; }\n[data-id=CountAxis] { font: 9px 'Segoe UI', sans-serif; }\n[data-id=InsightText] { color: #547164; font-size: 13px; line-height: 1.8; align-items: flex-start; }\n[data-id=RangeHeading] { color: #7a8e83; font-size: 10px; letter-spacing: 1px; }\n[data-id=RangeValue] { font-size: 20px; font-weight: 600; letter-spacing: 0; }\n[data-id=OperationCode] { background: #eef6f0; color: #32765a; border-radius: 8px; padding-left: 12px; font: 11px Consolas, monospace; }\n[data-id=FooterStatus], [data-id=FooterCredit] { font-size: 10px; color: #789084; }\n"
+      }
+    },
+    "active_theme": "studio.css"
+  }
+}

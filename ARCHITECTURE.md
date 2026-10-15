@@ -676,3 +676,27 @@ same editor styling applies to default and themed application surfaces. Layout,
 size-mode callbacks and Preview/Run behavior are unchanged. Windows verification
 covers real mouse opening and keyboard selection in default and Bootstrap canvases,
 plus the existing Designer/docking smoke groups. Linux remains unverified.
+
+## NumPy Studio example (2026-10-15)
+
+`examples/numpy_studio/project.json` is a complete editable dashboard with an
+embedded local CSS theme, standard Viper controls, directed card-content anchors
+and a sidebar filling between opposing window anchors. Separate relative-path
+launchers open the same JSON in Designer or Runtime. The original starter fixture
+is retained. NumPy is an optional example dependency, loaded by the window's
+`import numpy as np` block rather than an external handler registration.
+
+Saved events implement presets, random data generation, validated numeric input,
+mean/median/population deviation, IQR outlier detection and an eight-bin histogram.
+The histogram uses ordinary label Text updates. Standardizing produces z-scores
+without replacing raw input; constant datasets become zeros. Invalid input keeps
+the previous valid analysis and displays an inline error. A MeanValue change
+handler demonstrates Python property-change notifications. No runtime, host,
+solver, component or event API changes were needed.
+
+Verification: 136 Python tests pass, including eleven example cases covering
+known statistics, invalid input and recovery, normalization, outliers, random
+generation and NumPy dependency collection in Python export. Native Windows
+WebView2 checks pass for the actual example in Runtime and Designer Preview,
+including styling, histogram totals, minimum-size layout and resize/input state.
+The bundled preview image comes from the real runtime. Linux remains unverified.

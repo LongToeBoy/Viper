@@ -1,0 +1,53 @@
+/* NumPy Studio: local, embedded application theme. No network resources. */
+:root {
+  --primary: #087f70;
+  --background: #f3f6f5;
+  --text: #172e2a;
+}
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--background); color: var(--text); }
+.component { justify-content: flex-start; line-height: 1.4; }
+span.component { white-space: pre-wrap; }
+section.component { background: #fff; border: 1px solid #e0e9e5; border-radius: 16px; box-shadow: 0 4px 18px #183c2c05; }
+button.component { cursor: pointer; border-radius: 10px; border: 1px solid #dce6e1; background: #fff; color: #173d35; font: 600 13px 'Segoe UI', sans-serif; justify-content: center; }
+button.component:hover { background: #eaf5f0; border-color: #9acdbb; }
+button.component:focus-visible, input.component:focus-visible { outline: 3px solid #54bea4; outline-offset: 3px; }
+input.component { background: #f8faf9; border: 1px solid #d6e2dc; border-radius: 9px; padding: 0 14px; color: #274139; font: 13px Consolas, monospace; }
+label.component { font-size: 12px; gap: 9px; color: #526c63; cursor: pointer; }
+input[type=checkbox] { accent-color: #087f70; width: 16px; height: 16px; }
+section[data-id=Sidebar] { background: #122e28; border: 0; border-radius: 0; }
+[data-id=BrandMark] { background: #b5ebcf; color: #153c30; border-radius: 11px; justify-content: center; font-size: 27px; }
+[data-id=Brand] { color: #f0fff6; font-size: 22px; font-weight: 700; letter-spacing: 3px; }
+[data-id=BrandCaption], [data-id=SidebarFoot] { color: #91b4a5; font-size: 11px; }
+[data-id=PresetHeading] { color: #8cafa0; font-size: 10px; font-weight: 600; letter-spacing: 1.8px; }
+[data-id=SidebarTitle] { color: #e3f4e9; font-size: 19px; font-weight: 600; }
+[data-id=SidebarIntro] { color: #9ebeb0; font-size: 12px; }
+button[data-id^=Preset], button[data-id=Generate] { background: #1c3d33; border: 1px solid #35564a; color: #d8eee1; justify-content: flex-start; padding-left: 14px; }
+button[data-id^=Preset]:hover, button[data-id=Generate]:hover { background: #31594a; border-color: #6b9e87; }
+section[data-id=ModuleCard] { background: #1b3d32; border-color: #365a49; border-radius: 12px; }
+[data-id=ModuleEyebrow] { color: #a6d9bc; font-size: 10px; letter-spacing: 1.5px; }
+[data-id=ImportCode] { color: #c4f3d7; font: 12px Consolas, monospace; }
+[data-id=ModuleNote] { color: #9fc1ae; font-size: 12px; }
+[data-id=Eyebrow] { color: #087f70; font-size: 10px; letter-spacing: 2px; font-weight: 700; }
+[data-id=Title] { font-size: 31px; font-weight: 650; letter-spacing: -1px; }
+[data-id=Subtitle] { color: #6b7e75; font-size: 13px; }
+[data-id=ModuleBadge] { color: #087f70; background: #e2f2eb; font-size: 11px; border-radius: 16px; justify-content: center; font-weight: 600; }
+[data-id$=Caption]:not([data-id=BrandCaption]) { color: #71837a; font-size: 11px; }
+[data-id$=Value] { font-size: 32px; font-weight: 600; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+[data-id=MeanValue] { color: #087f70; }
+section[data-id=MeanCard] { border-color: #b4d9c9; background: #f6fffa; }
+[data-id$=Note] { font-size: 10px; color: #809087; }
+[data-id=ModuleNote] { font-size: 12px; color: #9fc1ae; }
+[data-id=DataTitle], [data-id=ChartTitle], [data-id=InsightTitle] { font-weight: 600; font-size: 16px; }
+[data-id=DataHint], [data-id=ChartHint], [data-id=ChartAxis], [data-id=CountAxis], [data-id=InputStatus] { color: #7a8e83; font-size: 11px; }
+button[data-id=Analyze] { background: #087f70; border-color: #087f70; color: #fff; }
+button[data-id=Analyze]:hover { background: #066859; }
+[data-id=ErrorMessage] { color: #ad483b; font-size: 12px; }
+[data-id^=Bin] { font: 10px Consolas, monospace; color: #72887b; }
+[data-id^=Bar] { background: #edf5ef; border-radius: 4px; color: #2b9c79; font: 16px Consolas, monospace; letter-spacing: -1px; padding-left: 5px; white-space: nowrap; overflow: hidden; }
+[data-id^=Frequency] { color: #557466; font: 11px Consolas, monospace; justify-content: flex-end; }
+[data-id=CountAxis] { font: 9px 'Segoe UI', sans-serif; }
+[data-id=InsightText] { color: #547164; font-size: 13px; line-height: 1.8; align-items: flex-start; }
+[data-id=RangeHeading] { color: #7a8e83; font-size: 10px; letter-spacing: 1px; }
+[data-id=RangeValue] { font-size: 20px; font-weight: 600; letter-spacing: 0; }
+[data-id=OperationCode] { background: #eef6f0; color: #32765a; border-radius: 8px; padding-left: 12px; font: 11px Consolas, monospace; }
+[data-id=FooterStatus], [data-id=FooterCredit] { font-size: 10px; color: #789084; }

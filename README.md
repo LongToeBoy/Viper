@@ -1,5 +1,7 @@
 ﻿# Viper
 
+VIPER stands for Visual Interface for Python Execution and Rendering. 🐍
+
 Viper is a visual desktop application builder written in Python. Both the IDE
 and its application runtime target Windows and Linux using one shared designer,
 project format and component renderer.
@@ -38,6 +40,12 @@ python -m viper.main
 ```
 
 ## Milestone 1
+
+For a complete visual example, try [Array — NumPy Studio](examples/numpy_studio/README.md):
+a styled data dashboard with live NumPy statistics, an interactive histogram,
+sample datasets and editable Python events. Open its `project.json` in Viper,
+or run `python -m examples.numpy_studio.edit` from this repository after installing
+the example's requirements.
 
 The scaffold now connects Python state to the actual designer. Click or drag a
 palette component to add it; select and drag to move it, or drag its lower-right

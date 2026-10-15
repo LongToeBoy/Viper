@@ -1,0 +1,2 @@
+# Install this demo dependency into the same Python environment as Viper.
+numpy>=2,<3
