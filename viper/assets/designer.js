@@ -9,6 +9,7 @@ const formViews = new Map();
 let queue = Promise.resolve();
 const status = document.getElementById('status');
 const actions = new ViperActionRegistry(error => { status.textContent = error.message; });
+const projectHistory = new ViperProjectHistory();
 let preferenceStorage;
 try { preferenceStorage = window.localStorage; } catch (_) { /* Session preferences still work. */ }
 const preferences = new ViperDesignerPreferences(preferenceStorage);
@@ -24,6 +25,11 @@ let panGesture = null;
 let suppressBoardClick = false;
 const linkEditor = new ViperLinkEditor(canvas, document.getElementById('container-anchors'), {
   changed() { render(); sync(); }, status(message) { status.textContent = message; },
+  selected() {
+    selectedId = null; projectSelected = false;
+    surface.root.querySelectorAll('.component-wrapper.selected').forEach(node => node.classList.remove('selected'));
+    frame.classList.remove('selected'); panels.show('inspector'); inspector(); actions.refresh();
+  },
   modeChanged() { actions.refresh(); }
 });
 const relativeLayout = new ViperRelativeLayout(canvas, () => {
@@ -56,11 +62,12 @@ function renderWindow() {
       y: (viewport.clientHeight - height * windowScale) / 2};
   }
   stage.style.left = `${stagePosition.x}px`; stage.style.top = `${stagePosition.y}px`;
-  frame.classList.toggle('selected', !selectedId && !projectSelected && !preview);
+  frame.classList.toggle('selected', !selectedId && !projectSelected && !preview && !linkEditor.selected);
   document.getElementById('window-resize').hidden = preview || projectSelected;
 }
 function selectWindow() {
   if (preview || !project) return;
+  linkEditor.clearSelection();
   selectedId = null; projectSelected = false; explorer.reveal(hierarchySelection()); render();
 }
 document.getElementById('window-titlebar').onclick = selectWindow;
@@ -70,7 +77,7 @@ document.getElementById('window-titlebar').onkeydown = event => {
 canvas.addEventListener('click', event => { if (event.target === canvas) selectWindow(); });
 viewport.addEventListener('pointerdown', event => {
   if (event.button !== 0 && event.button !== 1) return;
-  if (event.target.closest('.component-wrapper, .component, .container-anchor, .link-hit') || event.target.id === 'window-resize' || !stagePosition) return;
+  if (event.target.closest('.component-wrapper, .component, .container-anchor, .link-hit, .link-anchor') || event.target.id === 'window-resize' || !stagePosition) return;
   event.preventDefault();
   panGesture = {pointerId: event.pointerId, x: event.clientX, y: event.clientY,
     originX: stagePosition.x, originY: stagePosition.y, moved: false};
@@ -118,8 +125,14 @@ function enqueue(action) {
   queue = queue.then(action).catch(error => { status.textContent = error.message; });
   return queue;
 }
-function sync() {
+function sync({record = true} = {}) {
   const snapshot = clone(projectRoot);
+  if (record) {
+    const input = document.activeElement?.id;
+    const group = ['event-source', 'window-imports'].includes(input) ?
+      JSON.stringify([input, project?.form_id, tabs.active?.componentId, tabs.handler.value]) : null;
+    projectHistory.record(snapshot, group); actions.refresh();
+  }
   return enqueue(() => viperHost.request('update', {project: snapshot}));
 }
 function inspector() {
@@ -135,7 +148,8 @@ function inspector() {
   if (!projectRoot.windows.length) startup.appendChild(new Option('No windows', ''));
   startup.value = projectRoot.startup_window_id || ''; startup.disabled = preview || !projectRoot.windows.length;
   const component = selected();
-  document.getElementById('window-properties').hidden = rootSelected || !!component;
+  document.getElementById('link-properties').hidden = !project || rootSelected || tabs.isEvents();
+  document.getElementById('window-properties').hidden = rootSelected || !!component || !!linkEditor.selected;
   document.getElementById('component-properties').hidden = rootSelected || !component;
   if (!project) return;
   for (const [field, property] of Object.entries(windowFields)) {
@@ -255,6 +269,7 @@ function wireApplicationSurface() {
 }
 function selectComponent(componentId) {
   if (preview || !project?.components.some(component => component.id === componentId)) return;
+  linkEditor.clearSelection();
   selectedId = componentId; projectSelected = false; inspector(); frame.classList.remove('selected');
   surface.root.querySelectorAll('.component-wrapper').forEach(node =>
     node.classList.toggle('selected', node.dataset.id === componentId));
@@ -298,6 +313,7 @@ for (const field of fields) document.getElementById(`component-${field}`).addEve
   render(); sync();
 });
 function remove() { if (preview || projectSelected || !project || tabs.isEvents()) return;
+  if (linkEditor.removeSelected()) return;
   if (!selected()) return deleteWindow();
   project.links = project.links.filter(l => l.a.body !== selectedId && l.b.body !== selectedId);
   project.components = project.components.filter(c => c.id !== selectedId); selectedId = null;
@@ -309,10 +325,33 @@ function duplicate() {
 }
 function replaceProject(next) {
   projectRoot = next;
+  for (const form of next.windows) relativeLayout.initialize(form);
   project = next.windows.find(form => form.form_id === next.startup_window_id);
   projectSelected = !project; selectedId = null; preview = false; stagePosition = null; zoom = 1;
   formViews.clear(); tabs.reset(); explorer.reset();
-  linkEditor.setConnecting(false); render();
+  linkEditor.setConnecting(false); render(); projectHistory.reset(projectRoot); actions.refresh();
+}
+function stepHistory(redo = false) {
+  if (preview || !projectRoot) return;
+  sync();
+  const next = projectHistory.step(redo); if (!next) return;
+  const previousForm = project?.form_id;
+  projectRoot = next;
+  project = next.windows.find(form => form.form_id === previousForm) ||
+    next.windows.find(form => form.form_id === next.startup_window_id);
+  if (!project?.components.some(component => component.id === selectedId)) selectedId = null;
+  if (previousForm !== project?.form_id) { stagePosition = null; zoom = 1; }
+  tabs.documents = tabs.documents.filter(doc => next.windows.some(form => form.form_id === doc.formId &&
+    (!doc.componentId || form.components.some(component => component.id === doc.componentId))));
+  if (!tabs.documents.includes(tabs.active)) {
+    let doc = tabs.documents.find(doc => doc.formId === project?.form_id && !doc.componentId);
+    if (!doc && project) { doc = {key: `form:${project.form_id}`, formId: project.form_id}; tabs.documents.push(doc); }
+    tabs.active = doc || null;
+  }
+  projectSelected = !project || projectSelected;
+  linkEditor.clearSelection(); linkEditor.setConnecting(false);
+  render(); sync({record: false});
+  status.textContent = redo ? 'Redo' : 'Undo';
 }
 const tabs = new ViperDesignerTabs({
   root: () => projectRoot,
@@ -351,7 +390,7 @@ function openElementEvents(componentId = selectedId) {
 }
 function selectHierarchy(item) {
   if (preview) return;
-  if (item.kind === 'project') { projectSelected = true; selectedId = null; render(); return; }
+  if (item.kind === 'project') { linkEditor.clearSelection(); projectSelected = true; selectedId = null; render(); return; }
   tabs.showForm(item.formId);
   if (item.kind === 'component') selectComponent(item.componentId); else selectWindow();
 }
@@ -390,8 +429,12 @@ function newProject() {
   if (projectRoot && !confirm('Replace the current project? Save your changes first.')) return;
   return enqueue(async () => { replaceProject(await viperHost.request('new')); status.textContent = 'New project'; });
 }
-function saveProject() {
-  sync(); return enqueue(async () => { const result = await viperHost.request('save');
+function saveProject(saveAs = false) {
+  // Commit a pending Inspector change before capturing the save snapshot.
+  const input = document.activeElement;
+  if (input?.matches('input:not([type=file]), select')) input.dispatchEvent(new Event('change', {bubbles: true}));
+  sync(); return enqueue(async () => { const result = await viperHost.request(saveAs ? 'save-as' : 'save');
+    projectHistory.group = null;
     status.textContent = result.cancelled ? 'Save cancelled' : 'Project saved'; });
 }
 function openProject() {
@@ -491,6 +534,7 @@ panels = new ViperDesignerWorkspace(workspace, [
 preferences.set('properties', panels.isOpen('inspector'));
 const menus = createViperDesignerChrome(actions, {
   canvas, surface, scale: () => windowScale, newProject, openProject, saveProject, newWindow, duplicate, remove, add, select: selectComponent,
+  undo: () => stepHistory(), redo: () => stepHistory(true),
   setStartupWindow, rename() { showProperties(); document.activeElement.select(); },
   events: () => openElementEvents(),
   toggleTool: tool => panels.toggle(tool), resetWorkspace: () => panels.reset(),
@@ -506,6 +550,7 @@ const menus = createViperDesignerChrome(actions, {
   escape() { closeGridSettings(); linkEditor.setConnecting(false); }
 }, {
   hasProject: () => !!projectRoot, hasWindow: () => !!project, hasSelection: () => !!selected(), hasWidget: kind => !!library?.[kind],
+  canUndo: () => projectHistory.canUndo, canRedo: () => projectHistory.canRedo,
   projectSelected: () => projectSelected, hasWindows: () => !!projectRoot?.windows.length,
   startupSelected: () => projectRoot?.startup_window_id === project?.form_id,
   preview: () => preview, building: () => building, connecting: () => linkEditor.connecting, events: () => tabs.isEvents(),

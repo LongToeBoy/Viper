@@ -71,10 +71,27 @@ The permanent **File**, **Edit**, **Insert**, **Layout**, **View**, **Run** and 
 sit above the workspace, with a compact Save, Undo/Redo, snapping, Preview and Run
 toolbar. Insert's Widgets and Controls submenu uses the same creation commands
 as the palette. Right-click an element for Duplicate, Delete, Align, Connect
-Anchors and Properties. Unsupported features, including Undo/Redo, clipboard,
-multi-selection alignment, appear
-disabled. Save As uses the existing native save destination dialog. Stop Preview
+Anchors and Properties. Clipboard and multi-selection alignment remain disabled. Stop Preview
 returns to editing; separately launched applications use their native close button.
+
+The IDE title shows the project name and current filename. A `*` marks changes
+since the last successful save. **Save / Ctrl+S** writes to that same file without
+a dialog. A new project asks for its filename on its first save only.
+**Save As / Ctrl+Shift+S** always chooses another destination, which becomes the
+current file after a successful save. Cancelling or failing a save keeps the
+previous file association and unsaved state. Saves replace the destination only
+after a complete temporary file has been written.
+
+**Undo / Ctrl+Z** and **Redo / Ctrl+Shift+Z** work through the menus and toolbar
+for project edits: controls, geometry, anchors, form creation/deletion, startup
+selection, appearance, event mappings, Python source and window imports. Each
+completed drag or resize is one step; consecutive source/import typing is grouped.
+Text fields keep their native undo shortcuts. Returning to the saved contents
+clears the title's `*`, and saving keeps history available. A new edit after Undo
+discards the redo branch. History is limited to 50 steps and bounded by memory,
+resets when opening or creating a project, and is disabled during Preview.
+Workspace layout, document tabs, zoom and Preview state are separate from project
+history.
 
 Use F10 or Alt plus a menu's first letter to focus/open the menus, arrow keys to
 navigate submenus, Enter to activate, and Escape to close. Ctrl+S saves, Ctrl+O
@@ -320,11 +337,15 @@ ownership is available through `project.windows` and `project.get_window(form_id
 
 Click **Connect anchors**, then the reference anchor followed by the anchor on
 the element that should follow it. The window always acts as a reference. Click
-Connect anchors again or press Escape to exit linking. Click a line directly to
-select it: the inspector shows its endpoints, constrained axes and X/Y scalars.
+Connect anchors again or press Escape to cancel linking. Creating a link returns
+to selection mode; choose Connect anchors again to create another. Click a line
+or a connected anchor to select its link: Inspector opens and shows its endpoints,
+constrained axes and X/Y scalars. Click a shared anchor again to cycle its links.
 The line has a wider invisible hit area to make selection easier. Enter a scalar
-to change a distance immediately; negative values reverse the offset. Delete link
-removes the selected relationship. There is no connection-selection dropdown.
+to change a distance immediately; negative values reverse the offset. Press Delete
+or click **Delete link** in Inspector to remove the selected relationship, keeping
+the element's displayed size and position. Delete in an Inspector text field
+continues to edit that field. There is no connection-selection dropdown.
 
 Distances are dimensionless fractions: `gap_x = scalar_x * client_width` and
 `gap_y = scalar_y * client_height`. A scalar of 0.1 means 10% of that dimension.
@@ -481,7 +502,7 @@ python tests/windows_export_smoke.py --build
 python tests/windows_export_smoke.py --format python --build
 ```
 
-Ninety automated Python tests passed, plus ten deterministic hard-layout
+146 automated Python tests pass, plus ten deterministic hard-layout
 checks in WebView2, 50 menu/action assertions, 29 form/event tab checks,
 45 docking/workspace checks, 51 hierarchy checks, 21 Preview control binding checks,
 17 control checks in each main/secondary runtime, 21 Designer/Preview depth checks,
@@ -489,6 +510,9 @@ checks in WebView2, 50 menu/action assertions, 29 form/event tab checks,
 each Preview/main/secondary runtime, fifteen build-command checks and native designer/runtime anchor
 integration checks. Shell resizing and stacking isolation are checked at narrow
 and full-size window dimensions.
+Windows coverage also includes 38 document save/history checks, with controlled
+temporary file destinations and actual native title changes, plus 38 real mouse
+and keyboard anchor-selection/deletion checks on default and themed canvases.
 Windows WebView2 startup, the bridge, real-control
 rendering, add/duplicate/delete, Preview, standalone runtime resizing and shutdown
 have been exercised. Linux is implemented but has not been tested on Linux.
@@ -507,7 +531,7 @@ interaction still needs manual verification.
 Python export passed both an isolated-interpreter launcher check using only its
 bundled Viper package and a relocated native Windows `app.py` test with real
 controls, saved imports and change handlers. Executable export remains available.
-Nested containers, theme editing, undo/redo, installers and Linux executable export are deferred.
+Nested containers, theme editing, installers and Linux executable export are deferred.
 
 ## License
 

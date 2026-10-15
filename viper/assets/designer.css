@@ -205,10 +205,14 @@ select { padding: 8px; background: var(--panel-alt); color: var(--text); border:
 .link-line { fill: none; stroke: #51d8af; stroke-width: 2; pointer-events: none; }
 .link-line.selected { stroke: #ffca73; stroke-width: 3; }
 .link-hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
+.link-anchor { fill: #51d8af; stroke: white; stroke-width: 2; pointer-events: all; cursor: pointer; }
+.link-anchor.selected { fill: #ffca73; }
+.link-anchor:focus-visible { stroke: #ffca73; stroke-width: 4; outline: none; }
 #container-anchors { position: absolute; left: 1px; pointer-events: none; z-index: 11; }
 .container-anchor { display: block; padding: 0; background: #51d8af; pointer-events: auto; cursor: crosshair; }
 .connecting-links .position-anchor { display: block; cursor: crosshair; }
 .connecting-links .link-hit { pointer-events: none; }
+.connecting-links .link-anchor { pointer-events: none; }
 .position-anchor.anchor-pending { background: #ffca73; outline: 2px solid #ffca73; }
 #link-properties { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 16px; }
 .component-size-menu { position: absolute; right: 4px; top: 3px; z-index: 4;

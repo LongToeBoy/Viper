@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +28,17 @@ def save_project(project: Project, path: str | Path) -> Path:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     serialized = serialize_project(project)
-    target.write_text(json.dumps(serialized, indent=2), encoding="utf-8")
+    # Promote a complete sibling file so a failed save retains the last copy.
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=target.parent,
+                                         prefix='.viper-save-', suffix='.tmp', delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(json.dumps(serialized, indent=2))
+        temporary.replace(target)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     return target
 
 

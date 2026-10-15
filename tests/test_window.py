@@ -46,7 +46,8 @@ def test_runtime_applies_window_properties_without_changing_ide():
     assert not host.options.resizable and not host.options.decorated
     assert host.options.state == 'fullscreen'
     app.launch(host)
-    assert host.options.title == 'Viper Designer'
+    assert host.options.title == app.document_state()['title']
+    assert 'Demo Project' in host.options.title and 'Form1' not in host.options.title
     assert host.options.resizable and host.options.decorated
 
 

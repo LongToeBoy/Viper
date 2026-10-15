@@ -38,7 +38,9 @@ class Bridge:
                 if command == "bootstrap":
                     success({"project": self.app.project.to_dict(), "library": COMPONENT_LIBRARY,
                              'window_defaults': WindowDefinition().to_dict(), 'themes': self.themes.list(),
-                             'theme_directory': str(self.themes.directory.resolve())})
+                             'theme_directory': str(self.themes.directory.resolve()), 'document': self.app.document_state()})
+                elif command == 'document-state':
+                    success(self.app.document_state())
                 elif command == 'theme-list':
                     success({'themes': self.themes.list()})
                 elif command == 'theme-load':
@@ -59,36 +61,40 @@ class Bridge:
                     if project.to_dict() != self.app.project.to_dict():
                         self.app.replace_project(project)
                         self._runtime = None
+                    self.app.refresh_title()
                     success(self.app.project.to_dict())
                 elif command == 'reset-preview':
                     self._runtime = None
                     success({'reset': True})
                 elif command == "new":
-                    self.app.replace_project(Project())
+                    self.app.replace_project(Project(), reset_document=True)
                     self._runtime = None
                     success(self.app.project.to_dict())
-                elif command in ("save", "open"):
+                elif command == 'save' and self.app.project_path is not None:
+                    self.app.save()
+                    success({'saved': True, 'document': self.app.document_state()})
+                elif command in ("save", "save-as", "open"):
                     if self.app.host is None:
                         raise RuntimeError("No native host attached")
                     snapshot = Project.from_dict(self.app.project.to_dict())
+                    document_id = self.app._document_id
 
                     def selected(path):
                         try:
                             with self._lock:
                                 if path is None:
                                     success({"cancelled": True})
-                                elif command == "save":
+                                elif command in ('save', 'save-as'):
                                     save_path = path if path.suffix else path.with_suffix(".json")
-                                    from .serializer import save_project
-                                    save_project(snapshot, save_path)
-                                    success({"saved": True})
+                                    self.app.save(save_path, snapshot=snapshot, document_id=document_id)
+                                    success({'saved': True, 'document': self.app.document_state()})
                                 else:
-                                    success({"project": self.app.load(path).to_dict()})
+                                    success({'project': self.app.load(path).to_dict(), 'document': self.app.document_state()})
                                     self._runtime = None
                         except Exception as exc:
                             failure(exc)
 
-                    self.app.host.file_dialog(command == "save", selected)
+                    self.app.host.file_dialog(command != 'open', selected)
                 elif command == "run":
                     from .runtime import start_project
                     start_project(self.app.project, payload.get('window_id'))

@@ -2,7 +2,7 @@
 class ViperLinkEditor {
   constructor(canvas, anchors, callbacks) {
     this.canvas = canvas; this.anchors = anchors; this.callbacks = callbacks;
-    this.connecting = false; this.pending = null; this.selected = null; this.lines = new Map();
+    this.connecting = false; this.pending = null; this.selected = null; this.lines = new Map(); this.endpoints = new Map();
     for (const edge of ['top', 'right', 'bottom', 'left']) {
       const button = document.createElement('button'); button.type = 'button';
       button.className = `position-anchor container-anchor anchor-${edge}`; button.dataset.anchor = edge;
@@ -22,11 +22,34 @@ class ViperLinkEditor {
         this.callbacks.changed();
       };
     }
-    document.getElementById('delete-link').onclick = () => {
-      if (this.preview) return;
-      this.project.links = this.project.links.filter(l => l.id !== this.selected);
-      this.selected = null; this.callbacks.changed();
-    };
+    document.getElementById('delete-link').onclick = () => this.removeSelected();
+  }
+  select(id) {
+    if (this.preview || !this.project?.links.some(link => link.id === id)) return;
+    this.selected = id; this.pending = null;
+    this.callbacks.selected?.(); this.inspect(); this.draw();
+    document.getElementById('link-properties').scrollIntoView({block: 'nearest'});
+    this.callbacks.status('Anchor link selected. Press Delete or use Delete link in Inspector.');
+  }
+  clearSelection() { this.selected = null; if (this.project) { this.inspect(); this.draw(); } }
+  selectAnchor(body, edge) {
+    const links = this.project?.links.filter(link => [link.a, link.b].some(endpoint => endpoint.body === body && endpoint.edge === edge)) || [];
+    if (!links.length) return;
+    const index = links.findIndex(link => link.id === this.selected);
+    this.select(links[(index + 1) % links.length].id);
+  }
+  removeSelected() {
+    const link = this.project?.links.find(link => link.id === this.selected);
+    if (!link || this.preview) return false;
+    // Retain the solved size and position when a hard constraint is removed.
+    const follower = this.project.components.find(component => component.id === link.b.body);
+    const rectangle = this.layout.rectangles.get(link.b.body);
+    if (follower && rectangle) follower.box = {...rectangle,
+      reference_width: this.canvas.clientWidth, reference_height: this.canvas.clientHeight};
+    this.project.links = this.project.links.filter(item => item.id !== link.id);
+    this.selected = null; this.pending = null; this.callbacks.changed();
+    this.callbacks.status('Anchor link deleted.');
+    return true;
   }
   setConnecting(value) {
     this.connecting = !!value && !this.preview && !!this.project; this.pending = null; this.mode();
@@ -46,8 +69,9 @@ class ViperLinkEditor {
   bind(project, layout, preview) {
     if (this.project !== project) { this.pending = null; this.selected = null; }
     this.project = project; this.layout = layout; this.preview = preview;
+    if (!project.links.some(link => link.id === this.selected)) this.selected = null;
     if (this.pending && this.pending.body !== '$window' && !project.components.some(c => c.id === this.pending.body)) this.pending = null;
-    this.mode(); this.lines.clear();
+    this.mode(); this.lines.clear(); this.endpoints.clear();
     const ns = 'http://www.w3.org/2000/svg';
     this.svg = document.createElementNS(ns, 'svg'); this.svg.classList.add('link-overlay');
     this.svg.hidden = preview; this.canvas.appendChild(this.svg);
@@ -57,16 +81,34 @@ class ViperLinkEditor {
       hit.setAttribute('tabindex', '0'); hit.setAttribute('aria-label', 'Select relative layout link');
       hit.addEventListener('pointerdown', event => event.stopPropagation());
       const select = event => {
-        event.preventDefault(); event.stopPropagation(); this.selected = link.id; this.inspect(); this.draw();
-        document.getElementById('link-properties').scrollIntoView({block: 'nearest'});
+        event.preventDefault(); event.stopPropagation(); this.select(link.id); hit.focus({preventScroll: true});
       };
       hit.onclick = select; hit.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') select(event); };
       this.svg.append(visible, hit); this.lines.set(link.id, {visible, hit});
     }
+    // Endpoint handles live above controls and the themed iframe, so even links
+    // with a zero-length line remain selectable with a real mouse or keyboard.
+    for (const link of project.links) for (const endpoint of [link.a, link.b]) {
+      const key = JSON.stringify([endpoint.body, endpoint.edge]);
+      if (this.endpoints.has(key)) continue;
+      const handle = document.createElementNS(ns, 'circle'); handle.classList.add('link-anchor');
+      handle.dataset.body = endpoint.body; handle.dataset.anchor = endpoint.edge;
+      handle.setAttribute('r', '7'); handle.setAttribute('tabindex', '0'); handle.setAttribute('role', 'button');
+      const name = endpoint.body === '$window' ? 'Window' : project.components.find(c => c.id === endpoint.body)?.name;
+      handle.setAttribute('aria-label', `Select link at ${name}.${endpoint.edge}; click again to cycle shared links`);
+      handle.addEventListener('pointerdown', event => event.stopPropagation());
+      const select = event => {
+        event.preventDefault(); event.stopPropagation(); this.selectAnchor(endpoint.body, endpoint.edge); handle.focus({preventScroll: true});
+      };
+      handle.onclick = select;
+      handle.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') select(event); };
+      this.svg.appendChild(handle); this.endpoints.set(key, {handle, endpoint});
+    }
     this.inspect(); this.draw();
   }
   anchor(body, edge) {
-    if (!this.connecting || this.preview) return;
+    if (this.preview) return;
+    if (!this.connecting) { this.selectAnchor(body, edge); return; }
     if (!this.pending) { this.pending = {body, edge}; this.mode(); this.callbacks.status('Choose the dependent element anchor'); return; }
     if (this.pending.body === body) { this.callbacks.status('Choose a different element'); return; }
     let a = this.pending, b = {body, edge};
@@ -85,8 +127,8 @@ class ViperLinkEditor {
       this.project.links.pop(); target.size_mode = previousMode; this.pending = null; this.mode();
       this.callbacks.status(error.message); return;
     }
-    this.selected = link.id; this.pending = null; this.callbacks.changed();
-    this.callbacks.status('Linked. Edit X/Y scalars in the inspector; click the line to select it.');
+    this.selected = link.id; this.pending = null; this.connecting = false; this.callbacks.changed(); this.select(link.id);
+    this.callbacks.status('Linked. Click a line or connected anchor to select it; press Delete to unlink.');
   }
   inspect() {
     const link = this.project.links.find(l => l.id === this.selected);
@@ -109,6 +151,13 @@ class ViperLinkEditor {
       const path = `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
       line.visible.setAttribute('d', path); line.hit.setAttribute('d', path);
       line.visible.classList.toggle('selected', this.selected === link.id);
+    }
+    const selected = this.project.links.find(link => link.id === this.selected);
+    for (const {handle, endpoint} of this.endpoints.values()) {
+      const point = this.layout.anchor(endpoint);
+      handle.setAttribute('cx', point.x); handle.setAttribute('cy', point.y);
+      const active = !!selected && [selected.a, selected.b].some(item => item.body === endpoint.body && item.edge === endpoint.edge);
+      handle.classList.toggle('selected', active); handle.setAttribute('aria-pressed', String(active));
     }
   }
 }

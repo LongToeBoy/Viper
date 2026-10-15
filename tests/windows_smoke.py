@@ -59,11 +59,13 @@ def verify():
             from urllib.request import urlopen
             from windows_export_smoke import CDP
             from windows_docking_pointer_cases import check_docking_pointer
+            from windows_link_pointer_cases import check_link_pointer
             with urlopen(f'http://127.0.0.1:{pointer_port}/json', timeout=5) as response:
                 target = next(item for item in json.load(response) if item['type'] == 'page')
             client = CDP(target['webSocketDebuggerUrl'])
             try:
                 pointer_results = check_docking_pointer(client)
+                pointer_results['links'] = check_link_pointer(client)
             finally:
                 client.socket.close()
         if runtime_mode:
@@ -148,7 +150,6 @@ def verify():
               actions.execute('connect-links');
               document.querySelector('#container-anchors [data-anchor=left]').click();
               canvas.querySelector('.component-wrapper.selected [data-anchor=left]').click();
-              actions.execute('connect-links');
               // Clear selection and use the visible line's actual click target.
               linkEditor.selected = null; linkEditor.inspect(); linkEditor.draw();
               const link = project.links[0], a = relativeLayout.anchor(link.a), b = relativeLayout.anchor(link.b);
@@ -163,6 +164,7 @@ def verify():
               const width = project.canvas_width; project.canvas_width *= 1.5; render();
               const fixed = relativeLayout.rectangles.get(c.id);
               const fixedX = fixed.x, fixedWidth = fixed.width;
+              selectComponent(c.id);
               const menu = canvas.querySelector('.component-wrapper.selected .component-size-menu');
               menu.value = 'stretch'; menu.dispatchEvent(new Event('change', {bubbles: true}));
               const stretched = relativeLayout.rectangles.get(c.id);
@@ -200,6 +202,7 @@ def verify():
         assert depth_ready.wait(30), 'Depth checks did not finish'
         assert 'error' not in depth_results[0] and depth_results[0].get('passed', 0) >= 12, depth_results
         appearance_results = []
+        document_results = []
         if not runtime_mode:
             appearance_ready = threading.Event()
             host._window.evaluate_js((Path(__file__).parent / 'designer_appearance_cases.js').read_text(encoding='utf-8'),
@@ -216,6 +219,42 @@ def verify():
                                     lambda value: (imports_results.append(value), imports_ready.set()))
             assert imports_ready.wait(30), 'Window import checks did not finish'
             assert 'error' not in imports_results[0] and imports_results[0].get('passed', 0) >= 10, imports_results
+            from tempfile import TemporaryDirectory
+            original_picker = host.file_dialog
+            original_set_title = host.set_title
+            native_titles = []
+            def record_title(title):
+                original_set_title(title)
+                native_titles.append(host._window.title)
+            host.set_title = record_title
+            try:
+                with TemporaryDirectory(prefix='viper-save-smoke-') as directory:
+                    first, second = Path(directory) / 'first project.json', Path(directory) / 'copy project.json'
+                    choices = iter([first, None, second, first])
+                    dialogs = []
+                    def picker(save, callback):
+                        dialogs.append(save)
+                        callback(next(choices))
+                    host.file_dialog = picker
+                    app.replace_project(app.project, reset_document=True)
+                    document_ready = threading.Event()
+                    document_cases = (Path(__file__).parent / 'designer_document_cases.js').read_text(encoding='utf-8')
+                    document_cases = document_cases.replace('/*FIRST_PATH*/', json.dumps(str(first.resolve()))).replace(
+                        '/*SECOND_PATH*/', json.dumps(str(second.resolve())))
+                    host._window.evaluate_js(document_cases, lambda value: (document_results.append(value), document_ready.set()))
+                    assert document_ready.wait(40), 'Document save/history checks did not finish'
+                    assert 'error' not in document_results[0] and document_results[0].get('passed', 0) >= 30, document_results
+                    assert dialogs == [True, True, True, False], dialogs
+                    assert any('first project.json' in title and '*' in title for title in native_titles), native_titles
+                    assert any('copy project.json' in title and '*' not in title for title in native_titles), native_titles
+                    from viper.serializer import load_project
+                    assert any(c.text == 'Saved pending Inspector value' for c in load_project(second).components)
+                    assert load_project(first).components[0].text != 'Saved pending Inspector value'
+                    app.replace_project(app.project, reset_document=True)
+                    assert host._window.title == app.document_state()['title']
+            finally:
+                host.file_dialog = original_picker
+                host.set_title = original_set_title
         threading.Event().wait(.1)  # Drain native API acknowledgements before closing.
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
                           'form': runtime_form.form_id if runtime_mode else 'main',
@@ -230,6 +269,7 @@ def verify():
                           'appearance_checks': 0 if runtime_mode else appearance_results[0]['passed'],
                           'color_checks': 0 if runtime_mode else color_results[0]['passed'],
                           'imports_checks': 0 if runtime_mode else imports_results[0]['passed'],
+                          'document_checks': 0 if runtime_mode else document_results[0]['passed'],
                           'pointer_checks': pointer_results,
                           'checks': 'passed'}))
     except Exception as exc:

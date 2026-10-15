@@ -13,11 +13,10 @@ function createViperDesignerChrome(actions, commands, state, preferences) {
   register('new-project', 'New Project', commands.newProject, {shortcut: 'Ctrl+N', allowInInput: true});
   register('open-project', 'Open Project…', commands.openProject, {shortcut: 'Ctrl+O', allowInInput: true});
   register('save-project', 'Save', commands.saveProject, {icon: 'save', shortcut: 'Ctrl+S', enabled: state.hasProject, allowInInput: true});
-  // Save already opens the native destination dialog, so both entries reuse it.
-  register('save-as', 'Save As…', commands.saveProject, {shortcut: 'Ctrl+Shift+S', enabled: state.hasProject, allowInInput: true});
+  register('save-as', 'Save As…', () => commands.saveProject(true), {shortcut: 'Ctrl+Shift+S', enabled: state.hasProject, allowInInput: true});
   future('recent-projects', 'Recent Projects', 'Recent project history is not implemented');
-  future('undo', 'Undo', 'Undo history is not implemented', 'Ctrl+Z', 'undo');
-  future('redo', 'Redo', 'Undo history is not implemented', 'Ctrl+Shift+Z', 'redo');
+  register('undo', 'Undo', commands.undo, {shortcut: 'Ctrl+Z', icon: 'undo', enabled: () => rootEditing() && state.canUndo()});
+  register('redo', 'Redo', commands.redo, {shortcut: 'Ctrl+Shift+Z', icon: 'redo', enabled: () => rootEditing() && state.canRedo()});
   future('cut', 'Cut', 'Element clipboard is not implemented', 'Ctrl+X');
   future('copy', 'Copy', 'Element clipboard is not implemented', 'Ctrl+C');
   future('paste', 'Paste', 'Element clipboard is not implemented', 'Ctrl+V');

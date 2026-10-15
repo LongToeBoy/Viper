@@ -700,3 +700,72 @@ generation and NumPy dependency collection in Python export. Native Windows
 WebView2 checks pass for the actual example in Runtime and Designer Preview,
 including styling, histogram totals, minimum-size layout and resize/input state.
 The bundled preview image comes from the real runtime. Linux remains unverified.
+
+## Selecting and deleting connected anchors (2026-10-15)
+
+Creating a hard link now returns to selection mode. Previously the connection
+tool remained active, disabling line hit targets, while ordinary anchor clicks
+outside that tool did nothing. The existing Delete command also ignored link
+selection and could delete the selected control or ask to delete the window.
+
+The link editor now renders keyboard-focusable endpoint circles in its existing
+SVG overlay, above controls and themed application documents. Clicking a line or
+connected anchor selects its link, clears component selection and opens Inspector.
+Repeated clicks on a shared endpoint cycle its links. Coincident endpoints remain
+selectable when a line has zero length. Component, window and project selection
+clear link selection. Delete and Inspector's Delete link use the same removal
+method, which rebases the follower's authoring rectangle from its solved position
+and size before removing the constraint. Remaining links and size mode are kept.
+Input fields retain their native Delete behavior. No solver, host, runtime or
+user event source changes are involved.
+
+Verification: 136 Python tests pass. Windows WebView2 --pointer smoke reproduces
+the original selection-mode failure and now passes 38 real mouse/keyboard checks
+for default and Bootstrap canvases, alongside all existing Designer groups and
+15 docking pointer checks. Coverage includes anchor/line selection, hidden
+Inspector reopening, both deletion paths, shared anchors, coincident endpoints,
+text editing, geometry preservation, persisted state and unchanged Python source.
+Linux native verification remains pending.
+
+## Document saving, title state and undo/redo (2026-10-15)
+
+ViperApp owns the current project path and an independent saved-content checkpoint.
+Load associates its path; New clears it. The native IDE title shows project name,
+filename and a `*` when project contents differ from that checkpoint. Legacy
+percentage-to-rectangle initialization and insignificant conversion roundoff do
+not count as edits. This comparison does not mutate authored definitions or invoke
+the hard-anchor solver. Native title changes use the existing host contract.
+
+Save writes directly to a known path, including projects opened through the API.
+Only a first save with no path asks for a destination. Save As is a separate bridge
+command and always invokes the native picker. Successful saves establish the new
+checkpoint/path; cancellation or write failure leaves both intact. A save dialog
+captures its project and document identity so later edits remain dirty and a late
+callback cannot associate another document. The serializer writes a complete
+sibling temporary file before replacement, preserving previous bytes on failure.
+Save commits pending Inspector fields while retaining focus. Preview's unchanged
+dispatcher is preserved. Session paths/checkpoints never enter project JSON.
+
+`assets/designer-history.js` holds bounded, headless project snapshots: at most 50
+prior steps, trimmed further by a string-storage budget (retaining the latest
+undo step). The existing sync boundary records edits, with completed gestures as
+one step and consecutive event/import typing grouped within 900 milliseconds.
+Menus, toolbar, Ctrl+Z and Ctrl+Shift+Z use the same actions. Inputs retain native
+text undo. Restoring a snapshot preserves valid active documents/view state,
+prunes stale documents and refreshes the same renderer/solver and Python bridge.
+Undo/redo intentionally restore exact authored source without regenerating it.
+Project history excludes workspace tools, document tabs, zoom and Preview state.
+Saving keeps history; New/Open reset it; a new edit clears redo. Preview disables
+project undo/redo. The native saved-content comparison handles revisiting the save
+checkpoint in either direction, independently of the history storage limit.
+
+Verification: 146 Python tests pass, including ten document-save cases for file
+association, first/subsequent saves, cancellation, failed writes, source/style
+checkpoints, portable API loading, migration normalization and delayed callbacks.
+Windows WebView2 passes all existing Designer/pointer groups and 38 new document
+checks with actual bridge/file writes, controlled picker responses and actual
+native title changes. Coverage includes save checkpoints, pending Inspector edits,
+typing groups, geometry, anchors, controls, sibling/startup/final-form deletion,
+verbatim incomplete code/imports, history branching, limits and document resets.
+The NumPy designer launcher now calls app.load so Save remembers its JSON path.
+Linux native verification remains outstanding.

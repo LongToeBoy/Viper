@@ -21,8 +21,8 @@
     assert(duplicateRejected, 'Action IDs are unique');
     selectedId = null; render();
     assert(!actions.state('duplicate').enabled && actions.state('delete').enabled, 'Selection controls enabled state');
-    assert(!actions.state('undo').enabled && !actions.state('align-left').enabled && actions.state('new-window').enabled,
-      'Unsupported commands remain disabled and new windows are available');
+    assert(!actions.state('redo').enabled && !actions.state('align-left').enabled && actions.state('new-window').enabled,
+      'History state and unsupported commands have distinct enabled states');
 
     menus.buttons[2].click();
     const submenu = menus.popups[0].node.querySelector('.submenu-heading');
@@ -142,14 +142,14 @@
       requests.push({command, payload});
       if (command === 'new') return {...clone(originalProject), name: 'New menu project'};
       if (command === 'open') return {project: {...clone(originalProject), name: 'Opened menu project'}};
-      if (command === 'save') return {cancelled: true};
+      if (command === 'save' || command === 'save-as') return {cancelled: true};
       return {started: true};
     };
     menus.buttons[0].click(); key(document.activeElement, 's', {ctrlKey: true}); await queue;
     assert(requests.slice(-2).map(r => r.command).join(',') === 'update,save' && !menus.popups.length && status.textContent === 'Save cancelled',
       'Save shortcut shares toolbar callback, queues state first and preserves cancellation');
     actions.execute('save-as'); await queue;
-    assert(requests.slice(-2).map(r => r.command).join(',') === 'update,save', 'Save As reuses native save destination dialog');
+    assert(requests.slice(-2).map(r => r.command).join(',') === 'update,save-as', 'Save As explicitly chooses a destination');
     document.getElementById('run').click(); await queue;
     assert(requests.slice(-2).map(r => r.command).join(',') === 'update,run', 'Run sends the same synchronized project');
     key(nameInput, 'o', {ctrlKey: true}); await queue;
