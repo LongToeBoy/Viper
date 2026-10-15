@@ -132,6 +132,7 @@ select { padding: 8px; background: var(--panel-alt); color: var(--text); border:
 
 .canvas {
   position: relative;
+  isolation: isolate;
   flex: 1;
   margin: 18px;
   background: linear-gradient(180deg, #0c1425 0%, #0f1b2f 100%);
@@ -161,7 +162,7 @@ select { padding: 8px; background: var(--panel-alt); color: var(--text); border:
 .component-wrapper { position: absolute; cursor: move; touch-action: none; }
 .component-wrapper[hidden] { display: none; }
 .component-wrapper > .component { left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
-.component-wrapper.selected { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 1; }
+.component-wrapper.selected { outline: 2px solid var(--accent); outline-offset: 1px; }
 .position-anchor { display: none; position: absolute; width: 12px; height: 12px;
   border: 2px solid white; border-radius: 50%; background: var(--accent); touch-action: none; }
 .component-wrapper.selected > .resize-handle, .component-wrapper.selected > .position-anchor { display: block; }
@@ -172,12 +173,12 @@ select { padding: 8px; background: var(--panel-alt); color: var(--text); border:
 .resize-handle { display: none; position: absolute; right: 0; bottom: 0; width: 12px; height: 12px;
   background: var(--accent); border: 1px solid white; cursor: se-resize; touch-action: none; }
 .link-overlay { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
-  pointer-events: none; z-index: 2; }
+  pointer-events: none; z-index: 10; }
 .link-overlay[hidden], #container-anchors[hidden] { display: none; }
 .link-line { fill: none; stroke: #51d8af; stroke-width: 2; pointer-events: none; }
 .link-line.selected { stroke: #ffca73; stroke-width: 3; }
 .link-hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
-#container-anchors { position: absolute; left: 1px; pointer-events: none; z-index: 4; }
+#container-anchors { position: absolute; left: 1px; pointer-events: none; z-index: 11; }
 .container-anchor { display: block; padding: 0; background: #51d8af; pointer-events: auto; cursor: crosshair; }
 .connecting-links .position-anchor { display: block; cursor: crosshair; }
 .connecting-links .link-hit { pointer-events: none; }

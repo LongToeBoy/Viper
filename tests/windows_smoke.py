@@ -25,6 +25,8 @@ if runtime_mode:
     component = runtime_form.components[0]
     component.event_handlers['click'] = 'native_control'
     app.project.event_code['native_control'] = (Path(__file__).parent / 'native_control_handler.py').read_text(encoding='utf-8')
+    runtime_form.components[1].event_handlers['change'] = 'native_label_changed'
+    app.project.event_code['native_label_changed'] = (Path(__file__).parent / 'native_label_changed.py').read_text(encoding='utf-8')
     component.box = {'x': 100, 'y': 100, 'width': 80, 'height': 32, 'reference_width': 960, 'reference_height': 640}
     runtime_form.links = [{'id': 'runtime-link', 'a': {'body': '$window', 'edge': 'right'},
         'b': {'body': component.id, 'edge': 'right'}, 'axis': 'both', 'distance_x': -.1, 'distance_y': -.2}]
@@ -105,7 +107,7 @@ def verify():
                 assert shell['right'] <= shell['width'] and shell['pageHeight'] <= shell['heightAvailable'], shell
             assert host._window.evaluate_js("document.querySelectorAll('.component-size-menu').length") == 4
             result = host._window.evaluate_js("""(() => {
-              const c = project.components[0]; selectedId = c.id; render();
+              const c = project.components[0]; c.depth = 4; selectedId = c.id; render();
               const wrapper = canvas.querySelector('.component-wrapper.selected');
               const anchors = wrapper.querySelectorAll('.position-anchor').length;
               wrapper.setPointerCapture = () => {}; wrapper.hasPointerCapture = () => false;
@@ -159,6 +161,18 @@ def verify():
         host._window.evaluate_js(control_cases, lambda value: (controls_results.append(value), controls_ready.set()))
         assert controls_ready.wait(30), 'Control binding checks did not finish'
         assert 'error' not in controls_results[0] and controls_results[0].get('passed') == (17 if runtime_mode else 21), controls_results
+        change_ready, change_results = threading.Event(), []
+        change_cases = (Path(__file__).parent / 'change_cases.js').read_text(encoding='utf-8')
+        change_cases = change_cases.replace('/*CONTROL_SOURCE*/', json.dumps(control_source)).replace(
+            '/*LABEL_SOURCE*/', json.dumps((Path(__file__).parent / 'native_label_changed.py').read_text(encoding='utf-8')))
+        host._window.evaluate_js(change_cases, lambda value: (change_results.append(value), change_ready.set()))
+        assert change_ready.wait(30), 'Property change checks did not finish'
+        assert 'error' not in change_results[0] and change_results[0].get('passed') == 7, change_results
+        depth_ready, depth_results = threading.Event(), []
+        host._window.evaluate_js((Path(__file__).parent / 'depth_cases.js').read_text(encoding='utf-8'),
+                                lambda value: (depth_results.append(value), depth_ready.set()))
+        assert depth_ready.wait(30), 'Depth checks did not finish'
+        assert 'error' not in depth_results[0] and depth_results[0].get('passed', 0) >= 12, depth_results
         threading.Event().wait(.1)  # Drain native API acknowledgements before closing.
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
                           'form': runtime_form.form_id if runtime_mode else 'main',
@@ -167,6 +181,8 @@ def verify():
                           'workspace_checks': 0 if runtime_mode else workspace_results[0]['passed'],
                           'hierarchy_checks': 0 if runtime_mode else hierarchy_results[0]['passed'],
                           'control_checks': controls_results[0]['passed'],
+                          'change_checks': change_results[0]['passed'],
+                          'depth_checks': depth_results[0]['passed'],
                           'checks': 'passed'}))
     except Exception as exc:
         import traceback

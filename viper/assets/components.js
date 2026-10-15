@@ -1,5 +1,8 @@
 /* One renderer for design, preview, and standalone applications. */
 window.viperComponents = {
+  depth(component) {
+    return Number.isInteger(component.depth) && component.depth >= 0 && component.depth <= 4 ? component.depth : 2;
+  },
   bounds(layout, width, height) {
     const w = Math.min(width, Math.max(layout.min_width, layout.width * width / 100));
     const h = Math.min(height, Math.max(layout.min_height, layout.height * height / 100));
@@ -12,6 +15,7 @@ window.viperComponents = {
     const el = document.createElement(tags[component.type]);
     el.className = 'component';
     el.dataset.id = component.id;
+    el.style.zIndex = this.depth(component);
     if (component.type === 'text_input') {
       el.type = 'text'; el.value = component.text;
     } else if (component.type === 'checkbox') {

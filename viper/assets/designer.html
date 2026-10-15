@@ -111,6 +111,12 @@
         <div class="property-group" id="component-properties" hidden>
           <label>Name <input type="text" id="component-name" value="Button" /></label>
           <label>Text <input type="text" id="component-text" value="Launch" /></label>
+          <label>Depth (Z) <select id="component-depth">
+            <option value="0">0 — Back</option><option value="1">1 — Behind</option>
+            <option value="2">2 — Normal</option><option value="3">3 — Above</option>
+            <option value="4">4 — Front</option>
+          </select></label>
+          <p class="property-help">Higher depths draw on top. At the same depth, later-added elements draw on top. Select covered elements in Project Explorer.</p>
           <label>X (px) <input type="number" id="component-x" step="any" /></label>
           <label>Y (px) <input type="number" id="component-y" step="any" /></label>
           <label>Width (px) <input type="number" id="component-width" min="1" step="any" /></label>

@@ -17,6 +17,8 @@ def native_control(event):
     elif mode == 'bad':
         NameInput.Text = 'Partial write'
         NameInput.MissingProperty = True
+    elif mode == 'change-test':
+        StatusLabel.Text = 'Change test: updated by button'
     else:
         NameInput.Text = 'Hello World'
     return 'native:' + event['window_id']

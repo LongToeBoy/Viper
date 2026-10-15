@@ -114,6 +114,7 @@ def create_component(component_type: str, *, name: str | None = None, **override
         event_handlers=dict(overrides.pop("event_handlers", {})),
         box=rectangle_definition(overrides.pop('box', None)),
         size_mode=overrides.pop('size_mode', 'fixed'),
+        depth=overrides.pop('depth', 2),
     )
 
     for key, value in overrides.items():

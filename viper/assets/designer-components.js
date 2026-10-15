@@ -14,6 +14,9 @@ window.viperDesignerComponents = {
     const wrapper = document.createElement('div');
     wrapper.className = 'component-wrapper';
     wrapper.dataset.id = component.id;
+    wrapper.style.zIndex = viperComponents.depth(component);
+    // The wrapper owns depth; keep its editing handles above the inner control.
+    control.style.zIndex = 'auto';
     wrapper.hidden = !component.visible;
     wrapper.appendChild(control);
     for (const edge of ['top', 'right', 'bottom', 'left']) {

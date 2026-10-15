@@ -49,6 +49,15 @@ and Delete act on selection. Save/Open use native JSON file dialogs. Preview
 uses the same real controls as Run; Run opens a separate native runtime process.
 Save before replacing a project with New or Open.
 
+**Depth (Z)** in the component Inspector controls overlap with five levels:
+**0 Back**, **1 Behind**, **2 Normal**, **3 Above**, and **4 Front**. Higher depths
+draw above lower ones. Within the same depth, later components in the window's
+component list (normally later-added controls) draw on top. For example, put a
+background panel at 0 and its overlaid buttons at 2. Select covered controls in
+Project Explorer to edit their depth. Selection keeps the authored stacking order.
+Depth saves with the project and works identically in Designer, Preview and Run;
+existing components default to 2, preserving their relative order.
+
 The permanent **File**, **Edit**, **Insert**, **Layout**, **View**, **Run** and **Windows** menus
 sit above the workspace, with a compact Save, Undo/Redo, snapping, Preview and Run
 toolbar. Insert's Widgets and Controls submenu uses the same creation commands
@@ -128,6 +137,24 @@ Preview session. Invalid property writes or handler errors report an error and
 discard that event's UI writes. Delayed replies cannot overwrite newer typing or
 apply to a closed Preview. This API currently covers control content, visibility
 and enabled state; layout authoring still uses the shared anchor system.
+
+Python assignments that change a control's **Text** or a checkbox's **Checked**
+also trigger that control's mapped **change** handler, including labels. For
+example, a button assigning `StatusLabel.Text = "Launched"` runs StatusLabel's
+change handler after the button handler finishes. That handler receives
+`event.sender` as StatusLabel, `event['value']` as `"Launched"`, and
+`event['property']` as `"Text"` (`"Checked"` for a checked-state change).
+Lowercase names and Value aliases behave the same way. Assigning an unchanged
+value does not trigger an event. Multiple writes to one property within a handler
+produce one notification for its final changed value. Enabled/Visible writes do
+not trigger change.
+
+Change handlers can update other controls. Viper processes their notifications
+in order and applies the final UI updates together. A handler error or a chain
+that fails to settle within 64 events reports an error and rolls back the whole
+chain's UI writes, retaining received user input. Browser input behavior is
+unchanged: text inputs send change after an edit loses focus, and checkboxes when
+toggled. Applying the Python response does not send duplicate browser events.
 
 ## Workspace tools
 
@@ -273,10 +300,12 @@ python tests/windows_smoke.py --runtime
 python tests/windows_smoke.py --runtime --secondary
 ```
 
-Fifty-two automated Python tests passed, plus ten deterministic hard-layout
+Seventy-one automated Python tests passed, plus ten deterministic hard-layout
 checks in WebView2, 50 menu/action assertions, 25 form/event tab checks,
 45 docking/workspace checks, 51 hierarchy checks, 21 Preview control binding checks,
-17 control checks in each main/secondary runtime and native designer/runtime anchor
+17 control checks in each main/secondary runtime, 21 Designer/Preview depth checks,
+12 depth checks in each main/secondary runtime, seven property-change checks in
+each Preview/main/secondary runtime and native designer/runtime anchor
 integration checks. Shell resizing and stacking isolation are checked at narrow
 and full-size window dimensions.
 Windows WebView2 startup, the bridge, real-control

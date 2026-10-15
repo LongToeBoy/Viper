@@ -12,7 +12,7 @@ try { preferenceStorage = window.localStorage; } catch (_) { /* Session preferen
 const preferences = new ViperDesignerPreferences(preferenceStorage);
 const workspace = document.getElementById('workspace');
 let panels;
-const fields = ['name', 'text', 'x', 'y', 'width', 'height'];
+const fields = ['name', 'text', 'depth', 'x', 'y', 'width', 'height'];
 const frame = document.getElementById('window-frame');
 const viewport = document.getElementById('design-viewport');
 let windowScale = 1;
@@ -150,7 +150,8 @@ function inspector() {
     const input = document.getElementById(`component-${field}`);
     input.disabled = !component || preview || tabs.isEvents();
     const rectangle = component && (relativeLayout.project === project ? relativeLayout.rectangles.get(component.id) : component.box);
-    input.value = component ? (rectangle && field in rectangle ? rectangle[field].toFixed(2) : component[field]) : '';
+    input.value = component ? (field === 'depth' ? viperComponents.depth(component) :
+      rectangle && field in rectangle ? rectangle[field].toFixed(2) : component[field]) : '';
   }
 }
 function render() {
@@ -230,8 +231,12 @@ canvas.addEventListener('drop', event => {
     (event.clientY - rect.top) * 100 / rect.height);
 });
 for (const field of fields) document.getElementById(`component-${field}`).addEventListener('change', event => {
-  const component = selected(); if (!component || preview) return;
-  if (['x', 'y', 'width', 'height'].includes(field)) {
+  const component = selected(); if (!component || preview || tabs.isEvents()) return;
+  if (field === 'depth') {
+    const depth = Number(event.target.value);
+    if (!Number.isInteger(depth) || depth < 0 || depth > 4) { inspector(); return; }
+    component.depth = depth;
+  } else if (['x', 'y', 'width', 'height'].includes(field)) {
     const value = Number(event.target.value);
     if (!Number.isFinite(value)) return;
     const rectangle = {...relativeLayout.rectangles.get(component.id)};

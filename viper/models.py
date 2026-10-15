@@ -128,6 +128,11 @@ class Component:
     event_handlers: dict[str, str] = field(default_factory=dict)
     box: dict[str, Any] | None = None
     size_mode: str = 'fixed'
+    depth: int = 2
+
+    def __post_init__(self):
+        if type(self.depth) is not int or not 0 <= self.depth <= 4:
+            raise ValueError('Component depth must be an integer from 0 to 4')
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -142,6 +147,7 @@ class Component:
             "event_handlers": self.event_handlers,
             "box": self.box,
             "size_mode": self.size_mode,
+            "depth": self.depth,
         }
 
     @classmethod
@@ -158,6 +164,7 @@ class Component:
             event_handlers=dict(data.get("event_handlers", {})),
             box=rectangle_definition(data.get('box', data.get('physics'))),
             size_mode=str(data.get('size_mode', 'fixed')),
+            depth=data.get('depth', 2),
         )
         if component.size_mode not in {'fixed', 'stretch'}:
             raise ValueError('Invalid component size mode')

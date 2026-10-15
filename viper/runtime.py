@@ -7,6 +7,7 @@ import sys
 import tempfile
 import copy
 import json
+from collections import deque
 from pathlib import Path
 from typing import Callable
 
@@ -45,6 +46,37 @@ class Runtime:
             self._compiled_handlers[key] = handler
         return self._compiled_handlers[key]
 
+    def _dispatch_events(self, form, payload):
+        """Finish each handler before delivering its property-change events."""
+        pending = deque([payload])
+        components = {component.id: component for component in form.components}
+        values = self._control_state.values[form.form_id]
+        result = None
+        calls = 0
+        while pending:
+            if calls >= 64:
+                raise RuntimeError('Change handlers did not settle after 64 events. '
+                                   'Check for handlers repeatedly changing each other.')
+            current = pending.popleft()
+            component = components[current['component_id']]
+            previous = copy.deepcopy(values)
+            handler = self.handler(component.event_handlers.get(current['event']), form)
+            event = Event(current, form, self._control_state.controls(form), component.id)
+            value = handler(event) if handler else None
+            if result is None:
+                result = {'handled': bool(handler), 'value': value}
+            calls += 1
+            for update in self._control_state.updates(form, previous):
+                target = components[update['component_id']]
+                if not target.event_handlers.get('change'):
+                    continue
+                for key, property_name in [('text', 'Text'), ('checked', 'Checked')]:
+                    if key in update['properties']:
+                        pending.append({'window_id': form.form_id, 'component_id': target.id,
+                                        'event': 'change', 'property': property_name,
+                                        'value': update['properties'][key]})
+        return result
+
     def receive(self, message, reply):
         before = None
         try:
@@ -56,13 +88,10 @@ class Runtime:
                 component = next((c for c in form.components if c.id == payload["component_id"]), None)
                 if component is None:
                     raise ValueError(f'Unknown component in window {form.form_id}: {payload["component_id"]}')
-                name = component.event_handlers.get(payload["event"])
                 self._control_state.ingest(form, payload)
                 values = self._control_state.values[form.form_id]
                 before = copy.deepcopy(values)
-                handler = self.handler(name, form)
-                event = Event(payload, form, self._control_state.controls(form), component.id)
-                result = {"handled": bool(handler), "value": handler(event) if handler else None}
+                result = self._dispatch_events(form, payload)
                 updates = self._control_state.updates(form, before)
                 if updates:
                     result['updates'] = updates

@@ -347,3 +347,48 @@ runtime. Coverage includes the reported NameInput.Text example, live reads, cach
 state, window/name scoping, enabled/visible/text/checkbox changes, errors/rollback,
 rapid events, late input, disposed sessions and original design/source preservation.
 Linux GTK/WebKit native verification remains outstanding.
+
+## Discrete component depth (2026-10-15)
+
+Components serialize an integer `depth` from 0 (Back) to 4 (Front), defaulting to
+2 (Normal) for new and legacy components. The model and component factory reject
+invalid depths. Inspector exposes five named levels. Shared `components.js`
+applies depth to controls; designer wrappers use the same depth while their inner
+controls retain ordinary paint order so editing handles remain visible. Equal
+depths use stable component-list/DOM order. Selection never raises a component.
+The canvas isolates its stacking context, and link/window-anchor overlays remain
+above every component depth. Geometry, hard anchors, ownership and event source
+are unchanged. This is an additive schema-2 property; no schema migration is needed.
+
+Verification: 60 Python tests pass. Native Windows WebView2 passes the existing
+smoke suites plus 21 Designer/Preview and 12 depth checks in each main/secondary
+runtime, including actual overlap hit testing, all five levels, equal-depth order,
+covered selection, Inspector edits, persistence, duplication and legacy defaults.
+Existing link/resize integration also runs against a front-depth component.
+Linux GTK/WebKit native verification remains outstanding.
+
+## Python property-change notifications (2026-10-15)
+
+Runtime dispatch now queues follow-up `change` events for changed Text and
+Checked properties after each handler returns, including label Text changes.
+It compares runtime state before/after each handler and notifies only final
+changed values; identical assignments and Enabled/Visible writes do not notify.
+Events carry the owning window/component IDs, `event='change'`, the new `value`
+and `property='Text'` or `'Checked'`. Sender/control access and source compilation
+use the existing per-window API. Original event return values remain unchanged.
+Only the incoming browser event ingests a value snapshot; follow-up events see
+the live Python state without replaying stale frontend values.
+
+The queue drains within the original dispatch, producing one final patch set.
+Any handler failure, invalid original-event result or unsettled chain after 64
+events rolls back all UI writes from that dispatch while retaining ingested user
+input. Browser event timing is unchanged, and patch application still synthesizes
+no DOM events. Preview, Run and explicitly registered Python handlers share these
+semantics. User source and authored component definitions remain untouched.
+
+Verification: 71 Python tests pass, including the reported button-to-label chain,
+typed values/aliases, no-op writes, normalization, user-event deduplication,
+failure/loop rollback, queue recovery and window/Preview parity. Native Windows
+WebView2 passes existing suites plus seven property-change checks in Preview and
+each main/secondary runtime, asserting actual displayed controls and one transport
+request per button click. Linux GTK/WebKit remains unverified.
