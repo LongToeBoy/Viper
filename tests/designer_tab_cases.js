@@ -18,6 +18,8 @@
     assert(tabs.isEvents() && viewport.hidden && !document.getElementById('event-editor').hidden, 'Double-click opens event editor');
     assert(!actions.state('duplicate').enabled && !actions.state('connect-links').enabled, 'Events tab disables canvas editing');
     const source = document.getElementById('event-source'), handlerInput = document.getElementById('event-handler');
+    assert(handlerInput.value === '' && handlerInput.placeholder && !component.event_handlers.click,
+      'An unused event shows a suggested name without assigning a handler');
     document.getElementById('create-event-handler').click();
     const handlerName = component.event_handlers.click;
     assert(handlerName && source.value.includes(`def ${handlerName}(event):`), 'Create connects a Python handler');
@@ -33,6 +35,14 @@
     openElementEvents(component.id); openElementEvents(component.id);
     assert(document.querySelectorAll('#document-tabs [role=tab]').length === 2 && source.value === authored, 'Repeated opening reuses the event tab and source');
     const events = document.getElementById('event-kind'); change(events, 'change');
+    assert(handlerInput.value === '' && !component.event_handlers.change && source.value === '',
+      'Browsing another event leaves it unassigned');
+    source.dispatchEvent(new Event('input'));
+    assert(!component.event_handlers.change, 'An empty source edit does not create a handler mapping');
+    const directName = handlerInput.placeholder;
+    source.value = `def ${directName}(event):\n    pass\n`; source.dispatchEvent(new Event('input'));
+    assert(component.event_handlers.change === directName && projectRoot.event_code[directName] === source.value,
+      'Typing source directly still connects the suggested handler name');
     document.getElementById('create-event-handler').click();
     const changeName = component.event_handlers.change;
     assert(changeName !== handlerName && projectRoot.event_code[handlerName] === authored, 'Each event retains its own code');

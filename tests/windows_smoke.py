@@ -83,7 +83,7 @@ def verify():
             host._window.evaluate_js((Path(__file__).parent / 'designer_tab_cases.js').read_text(encoding='utf-8'),
                                     lambda value: (tabs_results.append(value), tabs_ready.set()))
             assert tabs_ready.wait(30), 'Form and event tab checks did not finish'
-            assert tabs_results[0].get('passed', 0) == 25 and 'error' not in tabs_results[0], tabs_results
+            assert tabs_results[0].get('passed', 0) == 29 and 'error' not in tabs_results[0], tabs_results
             workspace_ready, workspace_results = threading.Event(), []
             host._window.evaluate_js((Path(__file__).parent / 'designer_workspace_cases.js').read_text(encoding='utf-8'),
                                     lambda value: (workspace_results.append(value), workspace_ready.set()))
@@ -94,6 +94,11 @@ def verify():
                                     lambda value: (hierarchy_results.append(value), hierarchy_ready.set()))
             assert hierarchy_ready.wait(30), 'Project hierarchy checks did not finish'
             assert hierarchy_results[0].get('passed', 0) == 51 and 'error' not in hierarchy_results[0], hierarchy_results
+            build_ready, build_results = threading.Event(), []
+            host._window.evaluate_js((Path(__file__).parent / 'designer_build_cases.js').read_text(encoding='utf-8'),
+                                    lambda value: (build_results.append(value), build_ready.set()))
+            assert build_ready.wait(30), 'Build command checks did not finish'
+            assert build_results[0].get('passed') == 10 and 'error' not in build_results[0], build_results
             for width, height in [(560, 430), (240, 260), (1280, 820)]:
                 host.resize(width, height)
                 threading.Event().wait(.2)
@@ -180,6 +185,7 @@ def verify():
                           'tab_checks': 0 if runtime_mode else tabs_results[0]['passed'],
                           'workspace_checks': 0 if runtime_mode else workspace_results[0]['passed'],
                           'hierarchy_checks': 0 if runtime_mode else hierarchy_results[0]['passed'],
+                          'build_checks': 0 if runtime_mode else build_results[0]['passed'],
                           'control_checks': controls_results[0]['passed'],
                           'change_checks': change_results[0]['passed'],
                           'depth_checks': depth_results[0]['passed'],

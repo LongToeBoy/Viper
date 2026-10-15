@@ -3,6 +3,7 @@ const canvas = document.getElementById('canvas');
 let project, library, selectedId, preview = false;
 let projectRoot, windowDefaults, projectSelected = false;
 let previewSession;
+let building = false, buildTask = Promise.resolve();
 const formViews = new Map();
 let queue = Promise.resolve();
 const status = document.getElementById('status');
@@ -358,6 +359,28 @@ function runProject() {
   const windowId = projectSelected || !project ? projectRoot.startup_window_id : project.form_id;
   sync(); return enqueue(async () => { await viperHost.request('run', {window_id: windowId}); status.textContent = 'Application process started'; });
 }
+function buildProject() {
+  if (building) return buildTask;
+  building = true; actions.refresh();
+  status.textContent = 'Preparing application package…';
+  sync();
+  buildTask = (async () => {
+    try {
+      const result = await enqueue(() => viperHost.request('build'));
+      if (!result) return;
+      if (result.cancelled) { status.textContent = 'Build cancelled'; return; }
+      for (;;) {
+        const job = await viperHost.request('build-status', {job_id: result.job_id});
+        if (job.state === 'complete') { status.textContent = 'Build complete'; return; }
+        if (job.state === 'failed') throw new Error(job.message);
+        status.textContent = `Building application: ${job.message}`;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    } catch (error) { status.textContent = `Build failed: ${error.message}`; }
+    finally { building = false; actions.refresh(); }
+  })();
+  return buildTask;
+}
 function applyPreferences() {
   const values = preferences.values;
   workspace.classList.toggle('grid-hidden', !values.showGrid);
@@ -391,7 +414,7 @@ const menus = createViperDesignerChrome(actions, {
   setStartupWindow, rename() { showProperties(); document.activeElement.select(); },
   events: () => openElementEvents(),
   toggleTool: tool => panels.toggle(tool), resetWorkspace: () => panels.reset(),
-  preview: togglePreview, run: runProject, preferencesChanged: applyPreferences,
+  preview: togglePreview, run: runProject, build: buildProject, preferencesChanged: applyPreferences,
   windowProperties() { selectWindow(); showProperties(); }, properties: showProperties,
   connect() {
     if (!linkEditor.connecting) { preferences.set('showAnchors', true); applyPreferences(); }
@@ -405,7 +428,7 @@ const menus = createViperDesignerChrome(actions, {
   hasProject: () => !!projectRoot, hasWindow: () => !!project, hasSelection: () => !!selected(), hasWidget: kind => !!library?.[kind],
   projectSelected: () => projectSelected, hasWindows: () => !!projectRoot?.windows.length,
   startupSelected: () => projectRoot?.startup_window_id === project?.form_id,
-  preview: () => preview, connecting: () => linkEditor.connecting, events: () => tabs.isEvents(),
+  preview: () => preview, building: () => building, connecting: () => linkEditor.connecting, events: () => tabs.isEvents(),
   toolOpen: tool => panels.isOpen(tool)
 }, preferences);
 actions.subscribe(() => {

@@ -89,6 +89,11 @@ class WindowsHost(NativeHost):
     def set_title(self, title):
         self._window.set_title(title)
 
+    def export_dialog(self, name, callback):
+        paths = self._window.create_file_dialog(self._webview.FileDialog.SAVE, save_filename=name,
+                                               file_types=('Application ZIP (*.zip)',))
+        callback(Path(paths[0]) if paths else None)
+
     def resize(self, width, height):
         self._window.resize(width, height)
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
-from threading import RLock
+from threading import RLock, Thread
+from uuid import uuid4
 from .component_registry import COMPONENT_LIBRARY
 from .models import Project, WindowDefinition
 from .hosts.base import Reply
@@ -17,6 +18,7 @@ class Bridge:
         self.app = app
         self._lock = RLock()
         self._runtime = None
+        self._build_job = None
 
     def receive(self, message: dict[str, Any], reply: Reply) -> None:
         request_id = message.get("id")
@@ -73,6 +75,53 @@ class Bridge:
                     from .runtime import start_project
                     start_project(self.app.project, payload.get('window_id'))
                     success({"started": True})
+                elif command == 'build':
+                    if self.app.host is None:
+                        raise RuntimeError('No native host attached')
+                    if self._build_job and self._build_job['state'] in {'choosing', 'running'}:
+                        raise RuntimeError('An application build is already in progress.')
+                    from .build import application_name, export_project, validate_project
+                    from .hosts import create_builder
+                    snapshot = Project.from_dict(self.app.project.to_dict())
+                    validate_project(snapshot, registered_handlers=self.app.handlers)
+                    builder = create_builder()
+                    builder.check_available()
+                    job = {'id': uuid4().hex, 'state': 'choosing', 'message': 'Choose an application ZIP destination'}
+                    self._build_job = job
+
+                    def progress(message):
+                        with self._lock:
+                            job['message'] = message
+
+                    def build_selected(path):
+                        with self._lock:
+                            if path is None:
+                                job.update(state='cancelled', message='Build cancelled')
+                                success({'cancelled': True})
+                                return
+                            job.update(state='running', message='Preparing application')
+
+                        def build():
+                            try:
+                                archive = export_project(snapshot, path, builder=builder, progress=progress, overwrite=True)
+                                with self._lock:
+                                    job.update(state='complete', message='Build complete', path=str(archive))
+                            except Exception as error:
+                                with self._lock:
+                                    job.update(state='failed', message=str(error))
+
+                        Thread(target=build, name='viper-build').start()
+                        success({'job_id': job['id']})
+
+                    try:
+                        self.app.host.export_dialog(application_name(snapshot.name) + '.zip', build_selected)
+                    except Exception:
+                        job.update(state='failed', message='Could not open the export dialog')
+                        raise
+                elif command == 'build-status':
+                    if self._build_job is None or payload.get('job_id') != self._build_job['id']:
+                        raise ValueError('Unknown application build')
+                    success(dict(self._build_job))
                 elif command == "event":
                     from .runtime import Runtime
                     if self._runtime is None or self._runtime.project is not self.app.project:

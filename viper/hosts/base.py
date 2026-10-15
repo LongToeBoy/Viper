@@ -36,6 +36,9 @@ class NativeHost(ABC):
     @abstractmethod
     def file_dialog(self, save: bool, callback: Callable[[Path | None], None]) -> None: ...
 
+    def export_dialog(self, name: str, callback: Callable[[Path | None], None]) -> None:
+        raise RuntimeError('Application export is not available on this host.')
+
     @abstractmethod
     def set_title(self, title: str) -> None: ...
 

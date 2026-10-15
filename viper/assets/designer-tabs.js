@@ -124,11 +124,12 @@ class ViperDesignerTabs {
     const events = [...new Set(['click', 'change', ...Object.keys(component.event_handlers)])];
     this.kind.replaceChildren(...events.map(name => new Option(name, name)));
     this.kind.value = events.includes(current) ? current : events[0];
-    this.handler.value = component.event_handlers[this.kind.value] || this.suggestName(context);
-    const source = this.callbacks.root().event_code[this.handler.value];
+    this.handler.value = component.event_handlers[this.kind.value] || '';
+    this.handler.placeholder = this.suggestName(context);
+    const source = this.handler.value ? this.callbacks.root().event_code[this.handler.value] : undefined;
     this.source.value = source ?? '';
-    document.getElementById('event-code-status').textContent = source !== undefined ? 'Code is stored in this project.' :
-      component.event_handlers[this.kind.value] ? 'Mapped handler has no project source. Registered Python handlers still work.' : 'Create a handler to connect this event.';
+    document.getElementById('event-code-status').textContent = source?.trim() ? 'Code is stored in this project.' :
+      component.event_handlers[this.kind.value] ? 'No saved code. This event is inactive unless supplied by a registered Python handler.' : 'Create a handler to connect this event.';
   }
   suggestName({component, form}) {
     const stem = `${form.window.name}_${component.name}_${this.kind.value}`.replace(/[^a-zA-Z0-9_]/g, '_');
@@ -138,14 +139,17 @@ class ViperDesignerTabs {
     return name;
   }
   saveSource() {
-    const context = this.context(), name = this.handler.value.trim(); if (!context || !name) return;
+    const context = this.context(); if (!context) return;
+    const name = this.handler.value.trim() || this.handler.placeholder;
+    if (!name || (!this.source.value && !context.component.event_handlers[this.kind.value])) return;
+    this.handler.value = name;
     context.component.event_handlers[this.kind.value] = name;
     this.callbacks.root().event_code[name] = this.source.value;
     this.callbacks.changed();
     document.getElementById('event-code-status').textContent = 'Code is stored in this project. Save to write the project file.';
   }
   createHandler() {
-    const context = this.context(), name = this.handler.value.trim(); if (!context) return;
+    const context = this.context(), name = this.handler.value.trim() || this.handler.placeholder; if (!context) return;
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
       document.getElementById('event-code-status').textContent = 'Use a valid Python function name.'; return;
     }

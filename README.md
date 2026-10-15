@@ -63,7 +63,7 @@ sit above the workspace, with a compact Save, Undo/Redo, snapping, Preview and R
 toolbar. Insert's Widgets and Controls submenu uses the same creation commands
 as the palette. Right-click an element for Duplicate, Delete, Align, Connect
 Anchors and Properties. Unsupported features, including Undo/Redo, clipboard,
-multi-selection alignment and packaging, appear
+multi-selection alignment, appear
 disabled. Save As uses the existing native save destination dialog. Stop Preview
 returns to editing; separately launched applications use their native close button.
 
@@ -276,8 +276,59 @@ A saved project can also run with `python -m viper.runtime project.json`.
 Use `python -m viper.runtime project.json --window FORM_ID` or
 `Runtime(project, window_id='FORM_ID')` to launch another saved form.
 The CLI does not discover external handler modules automatically.
-Windows .exe packaging, Linux .desktop installation and standalone bundling are
-future milestones; generated projects must continue using this shared runtime.
+Windows ZIP export packages this same runtime. Linux .desktop installation and
+Linux standalone bundling remain future milestones.
+
+## Build an application to share
+
+On Windows, install the optional build tools in the Python environment running
+Viper (once):
+
+```powershell
+python -m pip install -e ".[build]"
+```
+
+Choose the project's **Startup window** in Inspector, then use **File > Build /
+Package** or **Run > Build / Package** and select a ZIP destination. The designer
+captures the current project, including unsaved edits, all windows and saved Python
+event source. Builds run in the background; the status bar shows progress and
+then **Build complete**. Editing afterward does not change the captured build. Build
+is disabled during Preview and while another build is running. A failed build
+preserves the previous ZIP. Cancelling the destination dialog changes nothing.
+
+Send the ZIP to another Windows user. They extract the whole archive and open
+the `.exe` inside. Keep its `_internal` folder beside it. The package contains
+Python, the Viper runtime, project definitions, shared frontend assets and native
+host dependencies; the recipient does not install Python, Viper or PyInstaller.
+The executable uses the configured startup window, independently of the active
+designer tab. Window settings, embedded icon and authored event handlers are
+retained. It is a folder distribution, not an installer or a single-file EXE.
+
+The recipient needs Microsoft Edge **WebView2 Runtime** and **.NET Framework 4.8**.
+The WebView2 engine is a system prerequisite rather than bundled in this ZIP;
+download it from [Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
+Build on Windows for a compatible Windows architecture; cross-compilation and
+Linux packages are not implemented. The generated README includes launch and
+prerequisite instructions. Startup errors report through a native message box
+and write details to `viper-application-error.log` in the system temporary folder.
+
+The same exporter is available from the command line:
+
+```powershell
+python -m viper.build project.json --output dist/MyApp.zip
+```
+
+Use `--overwrite` to replace an existing ZIP. The `viper-build` console command
+is equivalent. The exporter checks mapped handler syntax and collects static
+imports from saved source without executing it. Those modules must be installed
+in the build environment. For imports computed dynamically, add
+`--hidden-import module_name`; additional project-specific data files and external
+handler registrations are not automatically exported. Events whose mapped source
+is missing, empty or whitespace-only are inactive and do not block a build, just
+as in Preview and Run. Source and mappings are preserved. Nonempty mapped code
+must pass syntax checks; unreferenced drafts are retained verbatim without syntax
+checks. Builds from the designer reject active external Python registrations,
+which need to be moved into saved project code for export.
 
 ## Structure
 
@@ -298,14 +349,15 @@ python -m pytest -q -p no:cacheprovider
 python tests/windows_smoke.py
 python tests/windows_smoke.py --runtime
 python tests/windows_smoke.py --runtime --secondary
+python tests/windows_export_smoke.py --build
 ```
 
-Seventy-one automated Python tests passed, plus ten deterministic hard-layout
-checks in WebView2, 50 menu/action assertions, 25 form/event tab checks,
+Eighty-five automated Python tests passed, plus ten deterministic hard-layout
+checks in WebView2, 50 menu/action assertions, 29 form/event tab checks,
 45 docking/workspace checks, 51 hierarchy checks, 21 Preview control binding checks,
 17 control checks in each main/secondary runtime, 21 Designer/Preview depth checks,
 12 depth checks in each main/secondary runtime, seven property-change checks in
-each Preview/main/secondary runtime and native designer/runtime anchor
+each Preview/main/secondary runtime, ten build-command checks and native designer/runtime anchor
 integration checks. Shell resizing and stacking isolation are checked at narrow
 and full-size window dimensions.
 Windows WebView2 startup, the bridge, real-control
@@ -316,4 +368,11 @@ covered by native Windows smoke checks. Native file dialogs, Run's child window 
 manual end-to-end verification. Chromium/WebKit styling equivalence requires
 checks on both engines. Native form switching, source persistence and authored
 handler execution passed in the designer and in main/secondary runtime forms.
-Nested containers, theme editing, undo/redo and deployment exporters are deferred.
+Windows PyInstaller 6.22.3 export passed a real relocated-application smoke test:
+the EXE starts from a path containing spaces with an unrelated working directory
+and no Python on PATH, uses a secondary startup window, and runs a saved handler
+with a bundled import plus a label change handler. The smoke enables a local
+WebView2 debug port only in its child environment; exported apps contain no test
+mode. A fresh Windows VM without Python has not been tested. Native file-dialog
+interaction still needs manual verification.
+Nested containers, theme editing, undo/redo, installers and Linux export are deferred.

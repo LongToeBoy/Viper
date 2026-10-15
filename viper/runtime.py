@@ -31,7 +31,7 @@ class Runtime:
         if name in self.handlers:
             return self.handlers[name]
         source = self.project.event_code.get(name)
-        if not source:
+        if not source or not source.strip():
             return None
         form = form or self.form
         key = (form.form_id, name)

@@ -61,11 +61,12 @@ function createViperDesignerChrome(actions, commands, state, preferences) {
   register('preview', 'Preview', commands.preview, {icon: 'preview', shortcut: 'F6', enabled: state.hasWindows, checked: state.preview, allowInInput: true});
   register('run', 'Run Application', commands.run, {icon: 'run', toolbarLabel: 'Run', shortcut: 'F5', enabled: state.hasWindows, allowInInput: true});
   register('stop', 'Stop Preview', commands.preview, {shortcut: 'Shift+F5', enabled: state.preview, allowInInput: true});
-  future('build', 'Build / Package', 'Application packaging is not implemented');
+  register('build', 'Build / Package…', commands.build,
+    {enabled: () => rootEditing() && state.hasWindows() && !state.building()});
   register('show-properties', 'Properties', commands.properties, {enabled: rootEditing});
   register('edit-events', 'Edit Events', commands.events, {enabled: selection});
   const definitions = [
-    {name: 'File', items: ['new-project', 'open-project', null, 'save-project', 'save-as', null, 'recent-projects']},
+    {name: 'File', items: ['new-project', 'open-project', null, 'save-project', 'save-as', 'build', null, 'recent-projects']},
     {name: 'Edit', items: ['undo', 'redo', null, 'cut', 'copy', 'paste', null, 'rename-selection', 'duplicate', 'delete', 'select-all']},
     {name: 'Insert', items: ['new-window', widgets]},
     {name: 'Layout', items: [align, distribute, null, 'snap-grid', 'snap-elements', null, 'connect-links', 'grid-settings']},

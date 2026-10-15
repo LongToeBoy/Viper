@@ -43,9 +43,9 @@ project.json` or the Runtime API. A launcher should locate its project using
 `Path(__file__).resolve().parent / "project.json"`, never a hardcoded absolute
 path or OS-specific separator. Install Viper in the launcher environment.
 
-Windows .exe packaging and Linux .desktop installation are delivery targets,
-not completed deployment systems in Milestone 1. A future exporter must package
-the same runtime, assets and host adapters; Linux standalone bundling is later.
+Windows ZIP export now packages the existing runtime, assets and WebView2 adapter
+with PyInstaller (see the application export milestone below). Linux .desktop
+installation and standalone bundling remain delivery targets.
 Desktop-entry absolute Exec paths belong to installation output, not portable
 project data. Avoid building a second runtime in an exporter.
 
@@ -392,3 +392,75 @@ failure/loop rollback, queue recovery and window/Preview parity. Native Windows
 WebView2 passes existing suites plus seven property-change checks in Preview and
 each main/secondary runtime, asserting actual displayed controls and one transport
 request per button click. Linux GTK/WebKit remains unverified.
+
+## Shareable Windows application export (2026-10-15)
+
+`build.py` validates an independent project snapshot, stages a relative-path
+launcher/project JSON and the existing runtime assets, then delegates native
+packaging to `hosts/windows_build.py`. The platform factory remains in hosts/.
+Windows uses PyInstaller >=6.16,<7 with onedir/windowed output, an explicit
+WinForms/WebView2 backend and exclusions for other rendering engines. Startup
+icons become EXE resources. Only runtime frontend assets are shipped; the
+designer UI is not included. Exported apps call `packaged.launch`, which invokes
+the same Runtime, solver, renderer, property-change dispatch and Windows adapter.
+No second runtime or platform-specific designer is introduced.
+
+Mapped saved Python source is syntax-checked without execution. Its static
+imports become hidden imports for the freezer because JSON-held source is
+otherwise invisible to analysis. Unmapped source remains verbatim, including
+unfinished drafts. Missing imported packages fail with actionable errors.
+Explicit external handler registrations and additional application data
+are not automatically exported. CLI users may supply extra hidden imports.
+
+All windows, stable IDs and source are included, while launch uses the configured
+startup ID rather than the currently selected designer form. The generated entry
+point resolves project resources with pathlib relative to `__file__`, including
+PyInstaller's internal resource directory, independent of the working directory.
+Folder distributions are zipped under a portable application name and accompanied
+by recipient instructions. Temporary staging is cleaned; a sibling temporary ZIP
+is atomically promoted only after success, preserving previous output on failure.
+CLI replacement is explicit; GUI destinations use the native save dialog.
+
+File and Run share one enabled Build / Package action. Bridge captures the
+project before the destination picker, starts a worker, and returns a job ID.
+`build-status` exposes progress, completion paths and failures without holding
+the bridge lock during packaging. Duplicate builds are rejected. Source edits
+can continue against their own state. Cancelling does not build. The worker
+finishes an in-flight build even if the designer window closes. Startup errors
+use a native error message and a temporary log rather than a missing console.
+
+Build tools are an optional dependency on the authoring machine. Recipients need
+neither Python nor Viper, but must have WebView2 Runtime and .NET Framework 4.8.
+This is a Windows application folder/ZIP, without an installer, prerequisite
+bootstrapper, code signing, cross-compilation or Linux packaging. Current window
+navigation capabilities are unchanged. Linux native verification remains pending.
+
+Verification: 82 Python tests pass, including archive/source preservation,
+startup selection, portable paths, import analysis, failure/overwrite protection,
+async build snapshots, progress, cancellation, duplicate guards and startup error
+reporting. WebView2 Designer passes existing suites plus ten build command cases;
+main and secondary runtimes pass their existing suites. A real PyInstaller 6.22.3
+ZIP was extracted into a different directory with spaces, launched from an
+unrelated cwd without Python on PATH, and driven over a test-only local CDP
+connection. It rendered actual controls for a secondary startup form and ran a
+saved handler importing fractions plus the label's change handler. The test
+preserved user input and confirmed no designer document was shipped. A clean
+Windows VM without Python, prerequisite installation and native dialog interaction
+remain unverified.
+
+## Inactive event mappings during export (2026-10-15)
+
+Export ignores event mappings with absent, empty or whitespace-only source, matching
+the shared dispatcher's no-handler behavior. Mappings/source remain untouched in
+both the project and archive. Nonempty mapped source still undergoes syntax/import
+checks. Designer builds explicitly reject registered external Python overrides so
+their behavior cannot silently disappear from an export. The Events editor shows
+suggested names as placeholders for unassigned events; viewing an event or editing
+an empty source field does not assign it. Create handler and typing source directly
+continue to connect handlers, preserving existing source verbatim.
+
+Verification: 85 Python tests pass, including the reported Launch/change mapping
+with missing, empty and whitespace-only source, archive preservation, runtime
+no-op parity and external-registration protection. WebView2 Designer passes 29
+event-tab checks, including unassigned suggestions and direct source authoring.
+The packaged smoke fixture includes the reported empty Launch/change mapping.
