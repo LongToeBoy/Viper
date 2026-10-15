@@ -302,3 +302,48 @@ Native Windows WebView2 checks passed with 10 solver cases, 50 menu checks, 25
 form/event checks, 45 workspace checks and 51 hierarchy checks. Native main and
 secondary startup runtimes passed settings/rendering, resizing/input retention and
 authored event dispatch. Linux GTK/WebKit native verification remains outstanding.
+
+## Runtime control objects and UI updates (2026-10-15)
+
+`control_api.py` gives Runtime host-independent control objects backed by transient
+per-window state, separate from the saved definitions. Saved handlers receive
+window-scoped named bindings such as `NameInput.Text = "Hello World"`, plus explicit
+`controls[name]` / `controls.by_id(id)` access. Handler modules and globals cache by
+window ID and handler name so shared source cannot retain another form's controls.
+Names that are not Python identifiers or collide with reserved helpers, builtins
+or the handler function use explicit lookup. Duplicate-name access reports ambiguity
+and requires an ID. No source text is rewritten or regenerated.
+
+The event remains a dict subclass with the original transport keys. Attributes
+`event.controls`, `event.sender` and `event.form` supply context without adding
+non-serializable objects to the dictionary. Explicitly registered Python handlers
+use those attributes and retain their own globals. Supported writable properties
+are Text, Enabled and Visible, plus Checked for checkboxes and Value for text/
+checkbox inputs; lowercase aliases work. Name and Id are read-only. Property and
+value types are validated, and unsupported writes fail with a useful error.
+
+Before dispatch, Runtime ingests validated text-input and checkbox snapshots.
+The handler can read current values from other controls. It executes against
+session state and returns only changed properties in window/component-addressed
+`updates`, alongside the original handled/value result. Failed handlers or invalid
+JSON results roll back UI writes while retaining the received input snapshot.
+Authored project definitions and event source remain unchanged. Identical bridge
+updates preserve the active dispatcher/session; changed definitions invalidate it.
+The designer resets the dispatcher when entering or stopping Preview.
+
+`assets/control-session.js` serializes interactions and reads current values after
+earlier replies apply. Both Preview and Run use it. `components.js` applies patches
+to existing controls, retaining nodes, focus, unrelated input values and handlers.
+Listeners can become usable when an initially disabled control is enabled. Checkbox
+caption updates preserve its input. Property application does not synthesize events.
+Input revision tracking protects newer typing against delayed replies, and disposed
+sessions ignore replies from previous documents or Preview runs. Runtime updates
+do not alter anchor geometry, introduce a rendering loop or call native GUI APIs.
+
+Verification: 52 Python tests passed. Native Windows WebView2 passed the existing
+10 solver, 50 menu, 25 document-tab, 45 workspace and 51 hierarchy cases, plus 21
+Preview control binding checks and 17 control checks in each main/secondary native
+runtime. Coverage includes the reported NameInput.Text example, live reads, cached
+state, window/name scoping, enabled/visible/text/checkbox changes, errors/rollback,
+rapid events, late input, disposed sessions and original design/source preservation.
+Linux GTK/WebKit native verification remains outstanding.

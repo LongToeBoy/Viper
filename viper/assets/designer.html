@@ -64,6 +64,7 @@
             <button id="create-event-handler" class="tool-button">Create handler</button>
           </div>
           <p class="property-help">Write a Python function that accepts event. Changes save with the project; Preview and Run execute the handler.</p>
+          <p id="event-controls-help" class="property-help"></p>
           <label class="event-source-label" for="event-source">Python code</label>
           <textarea id="event-source" spellcheck="false" aria-label="Python event code" placeholder="Choose Create handler to start, or write your function here."></textarea>
           <p id="event-code-status" class="property-help" role="status"></p>
@@ -131,6 +132,7 @@
 
     <script src="host.js"></script>
     <script src="components.js"></script>
+    <script src="control-session.js"></script>
     <script src="anchor-layout.js"></script>
     <script src="relative-layout.js"></script>
     <script src="link-editor.js"></script>

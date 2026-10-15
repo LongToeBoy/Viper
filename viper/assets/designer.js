@@ -2,6 +2,7 @@ const canvas = document.getElementById('canvas');
 
 let project, library, selectedId, preview = false;
 let projectRoot, windowDefaults, projectSelected = false;
+let previewSession;
 const formViews = new Map();
 let queue = Promise.resolve();
 const status = document.getElementById('status');
@@ -153,6 +154,7 @@ function inspector() {
   }
 }
 function render() {
+  previewSession?.dispose(); previewSession = null;
   workspace.classList.toggle('workspace-empty', !project);
   tabs.render();
   explorer.render();
@@ -164,8 +166,7 @@ function render() {
   const nodes = new Map();
   for (const component of project.components) {
     const control = viperComponents.make(component, preview, payload => {
-      const event = {...payload, window_id: project.form_id};
-      enqueue(() => viperHost.request('event', event));
+      previewSession?.dispatch(payload);
     });
     const el = preview ? control : viperDesignerComponents.wrap(control, component, canvas, {
       scale: () => windowScale,
@@ -192,6 +193,10 @@ function render() {
     el.classList.toggle('selected', !preview && component.id === selectedId);
   }
   relativeLayout.bind(project, nodes);
+  if (preview) previewSession = new ViperControlSession(project, nodes, payload => {
+    const request = queue.then(() => viperHost.request('event', payload));
+    queue = request.catch(() => {}); return request;
+  }, error => { status.textContent = error.message; });
   linkEditor.bind(project, relativeLayout, preview);
   inspector();
   actions.refresh();
@@ -338,6 +343,7 @@ function openProject() {
 function togglePreview() {
   if (projectSelected && projectRoot.startup_window_id) tabs.showForm(projectRoot.startup_window_id);
   if (!project) return;
+  sync(); enqueue(() => viperHost.request('reset-preview'));
   if (tabs.isEvents()) tabs.showForm(project.form_id);
   preview = !preview;
   if (preview) linkEditor.setConnecting(false);

@@ -35,9 +35,14 @@ class Bridge:
                     success({"project": self.app.project.to_dict(), "library": COMPONENT_LIBRARY,
                              'window_defaults': WindowDefinition().to_dict()})
                 elif command == "update":
-                    self.app.replace_project(Project.from_dict(payload["project"]))
-                    self._runtime = None
+                    project = Project.from_dict(payload['project'])
+                    if project.to_dict() != self.app.project.to_dict():
+                        self.app.replace_project(project)
+                        self._runtime = None
                     success(self.app.project.to_dict())
+                elif command == 'reset-preview':
+                    self._runtime = None
+                    success({'reset': True})
                 elif command == "new":
                     self.app.replace_project(Project())
                     self._runtime = None

@@ -23,8 +23,8 @@ if runtime_mode:
     runtime_form.window.icon = icon_data()
     runtime_form.window.resizable = False
     component = runtime_form.components[0]
-    component.event_handlers['click'] = 'runtime_click'
-    app.project.event_code['runtime_click'] = 'def runtime_click(event):\n    return "native:" + event["window_id"]\n'
+    component.event_handlers['click'] = 'native_control'
+    app.project.event_code['native_control'] = (Path(__file__).parent / 'native_control_handler.py').read_text(encoding='utf-8')
     component.box = {'x': 100, 'y': 100, 'width': 80, 'height': 32, 'reference_width': 960, 'reference_height': 640}
     runtime_form.links = [{'id': 'runtime-link', 'a': {'body': '$window', 'edge': 'right'},
         'b': {'body': component.id, 'edge': 'right'}, 'axis': 'both', 'distance_x': -.1, 'distance_y': -.2}]
@@ -152,13 +152,21 @@ def verify():
             host._window.evaluate_js("sync().then(() => viperHost.request('bootstrap'))", lambda value: (values.append(value), saved.set()))
             assert saved.wait(15) and len(values[-1]['project']['windows'][0]['links']) == 1
             assert 'springs' not in values[-1]['project']
-            host._window.evaluate_js("project = JSON.parse(JSON.stringify(project)); render()")
+            host._window.evaluate_js("replaceProject(clone(projectRoot))")
+        controls_ready, controls_results = threading.Event(), []
+        control_source = (Path(__file__).parent / 'native_control_handler.py').read_text(encoding='utf-8')
+        control_cases = (Path(__file__).parent / 'control_cases.js').read_text(encoding='utf-8').replace('/*CONTROL_SOURCE*/', json.dumps(control_source))
+        host._window.evaluate_js(control_cases, lambda value: (controls_results.append(value), controls_ready.set()))
+        assert controls_ready.wait(30), 'Control binding checks did not finish'
+        assert 'error' not in controls_results[0] and controls_results[0].get('passed') == (17 if runtime_mode else 21), controls_results
+        threading.Event().wait(.1)  # Drain native API acknowledgements before closing.
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
                           'form': runtime_form.form_id if runtime_mode else 'main',
                           'anchor_cases': cases['passed'], 'menu_checks': 0 if runtime_mode else menu_results[0]['passed'],
                           'tab_checks': 0 if runtime_mode else tabs_results[0]['passed'],
                           'workspace_checks': 0 if runtime_mode else workspace_results[0]['passed'],
                           'hierarchy_checks': 0 if runtime_mode else hierarchy_results[0]['passed'],
+                          'control_checks': controls_results[0]['passed'],
                           'checks': 'passed'}))
     except Exception as exc:
         import traceback

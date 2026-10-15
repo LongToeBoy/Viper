@@ -88,6 +88,47 @@ the project JSON. Closing an Events tab preserves its code, and Create handler
 never replaces existing source. Renaming or duplicating an element also preserves
 its handlers. Arrow keys, Home and End navigate focused tabs.
 
+## Event data and control access
+
+An event describes an interaction: `event['window_id']` and
+`event['component_id']` identify its source, `event['event']` is `click` or
+`change`, and `event.get('value')` contains that interaction's value (text for a
+text input, a boolean for a checkbox). Events remain dictionary-compatible.
+Their `controls`, `sender` and `form` attributes provide runtime object access.
+
+Saved Python handlers can use a control's name directly within its own window:
+
+```python
+def on_MainWindow_Launch_click(event):
+    NameInput.Text = "Hello World"
+    StatusLabel.Text = NameInput.Text
+```
+
+All controls support writable **Text**, **Enabled** and **Visible** properties.
+Checkboxes also support **Checked**. Text inputs and checkboxes expose **Value**
+as an alias for their text or checked state; lowercase property names work too.
+**Name** and **Id** are read-only. Handler reads include the current text/checkbox
+values, so another input does not need its own event handler just to be read.
+
+Use `event.controls['NameInput'].Text` or `controls['NameInput'].Text` for explicit
+lookup. `event.sender` is the control that produced the event, and `event.form`
+provides the owning form's `id`, `name` and `controls`. Explicitly registered
+Python functions use these event attributes; their existing module globals are
+left intact. Direct names are supplied only to saved handler modules and must
+be Python identifiers without a leading underscore that do not collide with builtins, handler names or
+the `controls`/`form` helpers. Names containing spaces use dictionary lookup.
+Duplicate names require `event.controls.by_id(component_id)`. Renaming a control
+changes its runtime name; update named references yourself or use stable IDs.
+Viper never rewrites your Python source.
+
+Control property writes update existing displayed nodes in both Preview and Run.
+They are transient application state: they do not change the saved design, and
+restarting Preview restores authored values. Unchanged saves preserve the running
+Preview session. Invalid property writes or handler errors report an error and
+discard that event's UI writes. Delayed replies cannot overwrite newer typing or
+apply to a closed Preview. This API currently covers control content, visibility
+and enabled state; layout authoring still uses the shared anchor system.
+
 ## Workspace tools
 
 **Windows > Project Explorer**, **Components** and **Inspector** open or close the editor's
@@ -232,9 +273,10 @@ python tests/windows_smoke.py --runtime
 python tests/windows_smoke.py --runtime --secondary
 ```
 
-Thirty-five automated Python tests passed, plus ten deterministic hard-layout
+Fifty-two automated Python tests passed, plus ten deterministic hard-layout
 checks in WebView2, 50 menu/action assertions, 25 form/event tab checks,
-45 docking/workspace checks, 51 hierarchy checks and native designer/runtime anchor
+45 docking/workspace checks, 51 hierarchy checks, 21 Preview control binding checks,
+17 control checks in each main/secondary runtime and native designer/runtime anchor
 integration checks. Shell resizing and stacking isolation are checked at narrow
 and full-size window dimensions.
 Windows WebView2 startup, the bridge, real-control

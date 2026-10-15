@@ -116,6 +116,10 @@ class ViperDesignerTabs {
     const {component, form} = context;
     component.event_handlers ||= {};
     document.getElementById('event-heading').textContent = `${form.window.name} / ${component.name} — Events`;
+    const example = form.components.find(control => control.type === 'text_input') || component;
+    document.getElementById('event-controls-help').textContent = `Controls: ${form.components.map(control => control.name).join(', ')}. ` +
+      `Use event.controls[${JSON.stringify(example.name)}].Text = "Hello World". Unique Python names also work directly, such as NameInput.Text. ` +
+      'Properties: Text, Enabled, Visible; Checked for checkboxes. Use Preview to try the handler.';
     const current = this.active.event || (['text_input', 'checkbox'].includes(component.type) ? 'change' : 'click');
     const events = [...new Set(['click', 'change', ...Object.keys(component.event_handlers)])];
     this.kind.replaceChildren(...events.map(name => new Option(name, name)));
