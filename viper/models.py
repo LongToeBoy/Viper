@@ -192,8 +192,11 @@ class WindowDefinition:
     window: WindowSettings = field(default_factory=WindowSettings)
     links: list[dict[str, Any]] = field(default_factory=list)
     form_id: str = 'main'
+    imports: str = ''
 
     def __post_init__(self):
+        if not isinstance(self.imports, str):
+            raise ValueError('Window imports must be Python source text')
         if self.window.title == "Untitled Project":
             self.window.title = self.name
         if self.canvas_width < self.window.min_width or self.canvas_height < self.window.min_height:
@@ -231,6 +234,7 @@ class WindowDefinition:
             "window": self.window.to_dict(),
             "links": self.links,
             "form_id": self.form_id,
+            "imports": self.imports,
         }
 
     @classmethod
@@ -254,6 +258,7 @@ class WindowDefinition:
             window=WindowSettings.from_dict(data.get("window", {}), str(data.get("name", "Untitled Project"))),
             links=[link_definition(s) for s in data.get('links', [])],
             form_id=str(data.get('form_id', 'main')),
+            imports=data.get('imports', ''),
         )
         return project
 

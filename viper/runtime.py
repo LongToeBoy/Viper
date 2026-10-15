@@ -16,6 +16,7 @@ from .hosts import create_host, WindowOptions
 from .models import Project
 from .serializer import load_project, save_project
 from .control_api import ControlState, Event, FormContext
+from .event_imports import window_import_tree
 
 
 class Runtime:
@@ -25,7 +26,20 @@ class Runtime:
         self.form = project.get_window(window_id)
         self.window_id = self.form.form_id
         self._compiled_handlers = {}
+        self._window_imports = {}
         self._control_state = ControlState()
+
+    def window_imports(self, form):
+        if form.form_id not in self._window_imports:
+            tree = window_import_tree(form.imports, form.window.name)
+            namespace = {'__name__':'viper_window_imports'}
+            try:
+                exec(compile(tree, f'<imports {form.window.name}>', 'exec'), namespace)
+            except Exception as error:
+                raise RuntimeError(f'Imports for window {form.window.name!r}: {error}') from error
+            self._window_imports[form.form_id] = {name:value for name, value in namespace.items()
+                                                 if name not in {'__name__', '__builtins__'}}
+        return self._window_imports[form.form_id]
 
     def handler(self, name, form=None):
         if name in self.handlers:
@@ -38,7 +52,8 @@ class Runtime:
         if key not in self._compiled_handlers:
             controls = self._control_state.controls(form)
             namespace = {'__name__': 'viper_project_events', 'controls': controls,
-                         'form': FormContext(form.form_id, form.window.name, controls), **controls.bindings(name)}
+                         'form': FormContext(form.form_id, form.window.name, controls), **controls.bindings(name),
+                         **self.window_imports(form)}
             exec(compile(source, f'<event {name}>', 'exec'), namespace)
             handler = namespace.get(name)
             if not callable(handler):

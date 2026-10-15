@@ -43,7 +43,8 @@ The scaffold now connects Python state to the actual designer. Click or drag a
 palette component to add it; select and drag to move it, or drag its lower-right
 corner handle to resize. Four circular edge-midpoint anchors connect hard layout
 links; matching green anchors surround the window's client area. Each element
-has a small Fixed/Stretch dropdown near its top-right corner. The inspector
+has a small dropdown icon near its top-right corner; open it to choose Fixed or
+Stretch. The inspector
 edits name, text and rectangle geometry. Duplicate
 and Delete act on selection. Save/Open use native JSON file dialogs. Preview
 uses the same real controls as Run; Run opens a separate native runtime process.
@@ -163,6 +164,36 @@ together when sharing the app.
 
 ## Event data and control access
 
+Select a window in **Project Explorer** to edit its **Imports** in Inspector.
+The Events toolbar's **Window imports** button opens that window's field directly.
+Write ordinary Python import statements, for example:
+
+```python
+import numpy as np
+import cv2
+from pathlib import Path
+```
+
+Those names are available to every saved event handler in that window. A handler
+can call `np.array(...)` without repeating the import. Another window has its own
+import block and aliases. Imports load lazily on first handler use and are cached
+for that Preview/Run session. Python still caches imported modules normally;
+separate windows do not create separate copies of NumPy or OpenCV.
+
+Imports save with the window, including unfinished drafts, and never rewrite
+event source. Only import statements and comments belong in this field. Use
+explicit names and absolute imports; do not use `import *`. Reserved event API
+names (`controls`, `form`, `event`) need a different import alias. Module aliases
+take precedence over automatic control names; use `event.controls['name']` if
+there is a collision. Imports already written inside event code continue to work.
+Explicitly registered Python functions keep their existing module globals.
+
+Install third-party packages in the Python environment running Viper before
+using them. Both export formats collect dependencies from all window import
+blocks as well as event code. Python ZIPs list installed package distributions
+in requirements.txt; executable builds bundle the imported modules. Import
+errors identify the owning window and appear when using a handler or building.
+
 An event describes an interaction: `event['window_id']` and
 `event['component_id']` identify its source, `event['event']` is `click` or
 `change`, and `event.get('value')` contains that interaction's value (text for a
@@ -228,8 +259,8 @@ bar to move it; highlighted targets let you dock on the left, right, top or bott
 Dropping into an occupied dock combines the tools into a tabbed group. Drop onto
 **Join tabs** above another floating tool to combine them there as well.
 
-Drag a group's title bar to move all its tools together, or drag an individual
-tool tab to move just that tool. The arrow menu in a title bar also offers Float
+Click a tool tab to switch panels. Drag a group's title bar to move all its tools
+together, or drag an individual tool tab to move just that tool. The arrow menu in a title bar also offers Float
 and the four dock positions. The close button closes the active tool; reopen it
 through Windows. Closing tools leaves forms, components and event code intact.
 Tool tabs are separate from the form and Events tabs in the main area.

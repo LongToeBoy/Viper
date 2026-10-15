@@ -4,6 +4,15 @@ import sys
 import threading
 from pathlib import Path
 
+pointer_port = None
+if '--pointer' in sys.argv:
+    import os
+    import socket
+    with socket.socket() as probe:
+        probe.bind(('127.0.0.1', 0))
+        pointer_port = probe.getsockname()[1]
+    os.environ['WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'] = f'--remote-debugging-port={pointer_port}'
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from viper.app import ViperApp
 from viper.hosts.windows import WindowsHost
@@ -45,6 +54,18 @@ def verify():
         assert host._window.evaluate_js("document.querySelectorAll('.component').length") == 4
         cases = host._window.evaluate_js((Path(__file__).parent / 'anchor_cases.js').read_text(encoding='utf-8'))
         assert cases['passed'] == 10, cases
+        pointer_results = None
+        if pointer_port and not runtime_mode:
+            from urllib.request import urlopen
+            from windows_export_smoke import CDP
+            from windows_docking_pointer_cases import check_docking_pointer
+            with urlopen(f'http://127.0.0.1:{pointer_port}/json', timeout=5) as response:
+                target = next(item for item in json.load(response) if item['type'] == 'page')
+            client = CDP(target['webSocketDebuggerUrl'])
+            try:
+                pointer_results = check_docking_pointer(client)
+            finally:
+                client.socket.close()
         if runtime_mode:
             assert host._window.title == 'Form1' and not host._window.resizable
             bitmap = host._window.native.Icon.ToBitmap()
@@ -190,6 +211,11 @@ def verify():
                                     lambda value: (color_results.append(value), color_ready.set()))
             assert color_ready.wait(30), 'Theme palette color checks did not finish'
             assert 'error' not in color_results[0] and color_results[0].get('passed', 0) >= 30, color_results
+            imports_ready, imports_results = threading.Event(), []
+            host._window.evaluate_js((Path(__file__).parent / 'designer_import_cases.js').read_text(encoding='utf-8'),
+                                    lambda value: (imports_results.append(value), imports_ready.set()))
+            assert imports_ready.wait(30), 'Window import checks did not finish'
+            assert 'error' not in imports_results[0] and imports_results[0].get('passed', 0) >= 10, imports_results
         threading.Event().wait(.1)  # Drain native API acknowledgements before closing.
         print(json.dumps({'renderer': 'WebView2', 'mode': 'runtime' if runtime_mode else 'designer',
                           'form': runtime_form.form_id if runtime_mode else 'main',
@@ -203,6 +229,8 @@ def verify():
                           'depth_checks': depth_results[0]['passed'],
                           'appearance_checks': 0 if runtime_mode else appearance_results[0]['passed'],
                           'color_checks': 0 if runtime_mode else color_results[0]['passed'],
+                          'imports_checks': 0 if runtime_mode else imports_results[0]['passed'],
+                          'pointer_checks': pointer_results,
                           'checks': 'passed'}))
     except Exception as exc:
         import traceback

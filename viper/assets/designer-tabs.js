@@ -25,6 +25,9 @@ class ViperDesignerTabs {
       this.saveSource();
     });
     document.getElementById('create-event-handler').onclick = () => this.createHandler();
+    document.getElementById('edit-window-imports').onclick = () => {
+      const context = this.context(); if (context) callbacks.imports(context.form.form_id);
+    };
     this.bar.addEventListener('keydown', event => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key) || !event.target.matches('[role=tab]')) return;
       event.preventDefault();
@@ -116,10 +119,6 @@ class ViperDesignerTabs {
     const {component, form} = context;
     component.event_handlers ||= {};
     document.getElementById('event-heading').textContent = `${form.window.name} / ${component.name} — Events`;
-    const example = form.components.find(control => control.type === 'text_input') || component;
-    document.getElementById('event-controls-help').textContent = `Controls: ${form.components.map(control => control.name).join(', ')}. ` +
-      `Use event.controls[${JSON.stringify(example.name)}].Text = "Hello World". Unique Python names also work directly, such as NameInput.Text. ` +
-      'Properties: Text, Enabled, Visible; Checked for checkboxes. Python changes to Text or Checked also trigger change handlers after the current handler finishes. Use Preview to try the handler.';
     const current = this.active.event || (['text_input', 'checkbox'].includes(component.type) ? 'change' : 'click');
     const events = [...new Set(['click', 'change', ...Object.keys(component.event_handlers)])];
     this.kind.replaceChildren(...events.map(name => new Option(name, name)));

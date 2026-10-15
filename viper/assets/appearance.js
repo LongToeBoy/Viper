@@ -77,9 +77,12 @@ window.ViperAppearance = {
     .resize-handle { display:none;position:absolute;right:0;bottom:0;width:12px;height:12px;
       background:#5ba0ff;border:1px solid #fff;cursor:se-resize; }
     .component-size-menu { position:absolute!important;right:4px!important;top:3px!important;z-index:4;
-      width:65px!important;height:20px!important;min-height:0!important;margin:0!important;padding:1px 2px!important;
-      font:10px system-ui!important;color:#e5ecff!important;background:#1d2a42!important;border:1px solid #2c3c58!important;
+      width:20px!important;height:20px!important;min-height:0!important;margin:0!important;padding:0!important;appearance:none!important;
+      font:10px system-ui!important;color:transparent!important;
+      background:#1d2a42 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m3 4 3 3 3-3' fill='none' stroke='%23e5ecff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px 12px no-repeat!important;
+      border:1px solid #2c3c58!important;
       border-radius:4px!important;box-shadow:none!important;cursor:pointer; }
+    .component-size-menu option { color:#e5ecff!important;background:#1d2a42!important;font:12px system-ui!important; }
     .anchor-pending { background:#ffca73;outline:2px solid #ffca73; }
     .anchors-hidden .position-anchor { display:none!important; }
   `

@@ -7,7 +7,7 @@ from .models import Component, Layout, rectangle_definition
 
 
 COMPONENT_LIBRARY: dict[str, dict[str, Any]] = {
-    "button": {
+    "button": { 
         "type": "button",
         "name": "Button",
         "text": "Button",

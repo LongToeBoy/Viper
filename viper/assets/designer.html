@@ -76,9 +76,8 @@
             <label>Event <select id="event-kind"></select></label>
             <label>Handler <input id="event-handler" type="text" spellcheck="false" placeholder="Python function name"></label>
             <button id="create-event-handler" class="tool-button">Create handler</button>
+            <button id="edit-window-imports" class="tool-button">Window imports</button>
           </div>
-          <p class="property-help">Write a Python function that accepts event. Changes save with the project; Preview and Run execute the handler.</p>
-          <p id="event-controls-help" class="property-help"></p>
           <label class="event-source-label" for="event-source">Python code</label>
           <textarea id="event-source" spellcheck="false" aria-label="Python event code" placeholder="Choose Create handler to start, or write your function here."></textarea>
           <p id="event-code-status" class="property-help" role="status"></p>
@@ -117,6 +116,7 @@
           <h3>Window properties</h3>
           <label>Name <input id="window-name" type="text"></label>
           <label>Title <input id="window-caption" type="text"></label>
+          <label>Imports <textarea id="window-imports" rows="4" spellcheck="false" aria-label="Window Python imports" placeholder="import numpy as np&#10;import cv2"></textarea></label>
           <label>Client width (px) <input id="window-width" type="number" min="200" max="7680"></label>
           <label>Client height (px) <input id="window-height" type="number" min="100" max="4320"></label>
           <label>Minimum width (px) <input id="window-min-width" type="number" min="100" max="7680"></label>

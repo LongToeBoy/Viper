@@ -160,10 +160,11 @@ def make_demo(archive, format, theme_id=None):
     second.components[0].event_handlers['change'] = 'on_MainWindow_Launch_change'
     second.components[1].event_handlers['change'] = 'changed'
     project.event_code = {
-        'clicked': 'from fractions import Fraction\ndef clicked(event):\n    StatusLabel.Text = "Packaged " + str(Fraction(1, 2))\n',
+        'clicked': 'def clicked(event):\n    StatusLabel.Text = "Packaged " + str(Fraction(1, 2))\n',
         'changed': 'def changed(event):\n    MainPanel.Text = "Label change handler ran"\n',
         'unused_draft': 'def unfinished(\n',
     }
+    second.imports = '# Window dependency, shared by its handlers.\nfrom fractions import Fraction\n'
     if theme_id:
         from viper.themes import ThemeLibrary
         theme = ThemeLibrary().get(theme_id)

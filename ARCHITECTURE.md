@@ -608,3 +608,71 @@ controls appear only when the parent project is selected; window/component
 selection shows properties owned by that item. Component appearance and per-window
 background overrides stay with their owners. No model, theme application, event
 source, export format or rendering behavior changes.
+
+## Window-owned Python imports and compact Events editor (2026-10-15)
+
+WindowDefinition.imports stores a verbatim source block, defaulting to empty for
+existing projects/new windows. Window properties expose a monospace Imports field;
+the Events toolbar has a Window imports shortcut that selects its owning window
+and focuses the field. The two explanatory paragraphs above event source are
+removed. Handler authoring, status/error feedback and project source are retained.
+
+event_imports.py validates import-only syntax on use/export, including aliases,
+absolute import paths and reserved event API names. Incomplete drafts can still
+save and reopen. Runtime lazily executes each window's block once per session,
+caches its imported bindings, and seeds each saved handler's existing per-window/
+per-handler namespace. Aliases override automatic control bindings; explicit
+event.controls lookup remains available. Registered external handlers keep their
+own globals. Failed imports identify the window and do not cache partial bindings.
+Modules themselves retain normal Python sys.modules caching; this is namespace
+ownership, not separate interpreters or module instances. Preview edits reset the
+same existing bridge Runtime. Event code is never rewritten or concatenated.
+
+The exporter statically gathers imports from all windows and mapped event source
+without executing user code. Python requirements and Windows hidden imports use
+that combined module set. Both existing export formats copy the same runtime and
+window source. No package auto-installation, second dispatcher, native dependency
+or platform-specific shared logic is introduced.
+
+Verification: 125 Python tests pass, including import aliases, shared bindings,
+window isolation, lazy loading, errors, name collisions, source/draft persistence,
+Preview reset and export dependency metadata. Windows Designer passes ten new
+import checks alongside its existing groups. Relocated Python and executable
+smoke fixtures use a window-level Fraction import from saved event code. Native
+Linux behavior remains unverified.
+
+## Click activation of docked tool tabs (2026-10-15)
+
+Workspace pointer capture retargets a tab's pointerup/click to the workspace, so
+native clicks failed even though scripted element.click() tests passed. Pending
+gestures now retain their pressed tab. A release inside that tab below the drag
+threshold explicitly activates it and focuses the replacement tab. Drag capture,
+threshold, cancellation, placement and keyboard activation keep their existing
+paths. Application definitions, geometry and event source remain unchanged.
+
+windows_smoke.py --pointer adds real WebView2 CDP mouse/keyboard input rather than
+synthetic tab clicks. It reproduces the original failure and verifies fourteen
+checks for single clicks, active tabs, pointer jitter, keyboard switching, docking
+an individual tab, floating tab groups, clicks after dragging and project-data
+preservation. Existing forty-five workspace checks and all other Designer groups
+pass; 125 Python tests pass. Native Linux behavior remains unverified.
+
+## Overflowing tool-tab labels (2026-10-15)
+
+The tab strip now uses intrinsic height with a minimum height on each tab, so a
+native horizontal scrollbar gets space below the labels. Vertical overflow is
+hidden and labels stay on one line. The previous fixed strip height included the
+scrollbar, squeezing/cropping labels when three tools shared a narrow dock.
+Windows --pointer smoke reproduces that clipping before the fix and now passes
+fifteen checks, including text bounds above the scrollbar in a three-tool dock,
+alongside the existing Designer groups. Native Linux verification is pending.
+
+## Compact component size dropdown (2026-10-15)
+
+Designer size controls retain the native select and existing Fixed/Stretch values
+but show only a 20px corner chevron while closed. Option labels remain readable
+when opened, with the existing accessible name and a Size behavior tooltip. The
+same editor styling applies to default and themed application surfaces. Layout,
+size-mode callbacks and Preview/Run behavior are unchanged. Windows verification
+covers real mouse opening and keyboard selection in default and Bootstrap canvases,
+plus the existing Designer/docking smoke groups. Linux remains unverified.

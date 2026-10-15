@@ -36,6 +36,7 @@ window.viperDesignerComponents = {
     resizeHandle.setAttribute('aria-label', 'Resize component');
     wrapper.appendChild(resizeHandle);
     const menu = document.createElement('select'); menu.className = 'component-size-menu';
+    menu.title = 'Size behavior';
     menu.setAttribute('aria-label', `${component.name} size behavior`);
     menu.append(new Option('Fixed', 'fixed'), new Option('Stretch', 'stretch'));
     menu.value = component.size_mode || 'fixed';

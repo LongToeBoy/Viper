@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .models import Project
 from .serializer import load_project, save_project
+from .event_imports import imported_modules, window_import_tree
 
 
 RUNTIME_ASSETS = ('runtime.html', 'designer.css', 'host.js', 'theme-colors.js', 'appearance.js', 'components.js',
@@ -36,6 +37,9 @@ def validate_project(project, *, registered_handlers=()):
         raise ValueError('Create a window before building an application.')
     project.get_window()
     imports = set()
+    for form in project.windows:
+        imports.update(imported_modules(window_import_tree(form.imports, form.window.name),
+                                        f'Imports for window {form.window.name!r}'))
     mapped = {name for form in project.windows for component in form.components
               for name in component.event_handlers.values() if name}
     for name in sorted(mapped):
@@ -50,17 +54,10 @@ def validate_project(project, *, registered_handlers=()):
             compile(tree, f'<event {name}>', 'exec')
         except (SyntaxError, ValueError) as error:
             raise ValueError(f'Handler {name!r} cannot be built: {error}') from error
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                imports.update(alias.name for alias in node.names)
-            elif isinstance(node, ast.ImportFrom):
-                if node.level:
-                    raise ValueError(f'Handler {name!r} uses a relative import; use an installed module name.')
-                if node.module:
-                    imports.add(node.module)
+        imports.update(imported_modules(tree, f'Handler {name!r}'))
     for module in sorted(imports):
         if importlib.util.find_spec(module.split('.')[0]) is None:
-            raise ValueError(f'Event code imports {module!r}, which is not installed in the build environment.')
+            raise ValueError(f'Project imports {module!r}, which is not installed in the build environment.')
     return sorted(imports)
 
 

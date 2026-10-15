@@ -150,6 +150,9 @@ function inspector() {
   }
   document.getElementById('window-icon').disabled = preview || tabs.isEvents();
   document.getElementById('clear-window-icon').disabled = preview || tabs.isEvents() || !project.window.icon;
+  const imports = document.getElementById('window-imports');
+  if (imports.value !== (project.imports || '')) imports.value = project.imports || '';
+  imports.disabled = preview || tabs.isEvents();
   for (const field of fields) {
     const input = document.getElementById(`component-${field}`);
     input.disabled = !component || preview || tabs.isEvents();
@@ -314,6 +317,9 @@ function replaceProject(next) {
 const tabs = new ViperDesignerTabs({
   root: () => projectRoot,
   preview: () => preview,
+  imports(formId) {
+    tabs.showForm(formId); selectWindow(); showProperties(); document.getElementById('window-imports').focus();
+  },
   activate(formId) {
     if (project && projectRoot.windows.includes(project)) formViews.set(project.form_id, {selectedId, zoom, stagePosition});
     project = projectRoot.windows.find(form => form.form_id === formId);
@@ -530,6 +536,18 @@ document.getElementById('apply-grid-settings').onclick = () => {
 };
 applyPreferences(); render();
 new ResizeObserver(() => { if (project) renderWindow(); }).observe(viewport);
+
+const windowImportsInput = document.getElementById('window-imports');
+windowImportsInput.addEventListener('input', () => {
+  if (!project || preview || tabs.isEvents()) return;
+  project.imports = windowImportsInput.value; sync();
+});
+windowImportsInput.addEventListener('keydown', event => {
+  if (event.key !== 'Tab' || event.ctrlKey || event.altKey || event.metaKey) return;
+  event.preventDefault();
+  windowImportsInput.setRangeText('    ', windowImportsInput.selectionStart, windowImportsInput.selectionEnd, 'end');
+  windowImportsInput.dispatchEvent(new Event('input'));
+});
 
 for (const [field, property] of Object.entries(windowFields)) {
   document.getElementById(`window-${field}`).addEventListener('change', event => {

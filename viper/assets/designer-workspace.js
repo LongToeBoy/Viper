@@ -283,6 +283,7 @@ class ViperDesignerWorkspace {
     const bounds = this.groupNodes.get(group.id).getBoundingClientRect(), root = this.root.getBoundingClientRect();
     this.gesture = {pointerId: event.pointerId, kind: splitter || resize ? 'resize' : 'move', groupId: group.id,
       tools: tab ? [tab.dataset.tool] : [...group.tools], original: this.snapshot(), started: false,
+      tab,
       x: event.clientX, y: event.clientY, side: splitter?.dataset.side,
       bounds: {x: bounds.left - root.left, y: bounds.top - root.top, width: bounds.width, height: bounds.height}};
     this.root.setPointerCapture(event.pointerId);
@@ -350,6 +351,14 @@ class ViperDesignerWorkspace {
     this.clearGesture();
     if (gesture.started) {
       this.suppressClick = true; setTimeout(() => { this.suppressClick = false; }, 0); this.commit();
+    } else if (gesture.tab) {
+      // Capture retargets the browser click to the workspace. Treat a release
+      // inside the original tab as activation; real drags keep their own path.
+      const rect = gesture.tab.getBoundingClientRect();
+      if (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) {
+        const tool = gesture.tab.dataset.tool;
+        this.show(tool); document.getElementById(`tool-tab-${tool}`).focus({preventScroll:true});
+      }
     }
   }
   cancelGesture() {
