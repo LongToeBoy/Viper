@@ -87,7 +87,7 @@ class CDP:
             return message['result']['result'].get('value')
 
 
-def make_demo(archive):
+def make_demo(archive, format):
     from viper.app import ViperApp
     from viper.build import export_project
     from viper.models import WindowDefinition
@@ -108,24 +108,27 @@ def make_demo(archive):
         'changed': 'def changed(event):\n    MainPanel.Text = "Label change handler ran"\n',
         'unused_draft': 'def unfinished(\n',
     }
-    export_project(project, archive, overwrite=True, progress=lambda message: print(message, flush=True))
+    export_project(project, archive, format=format, overwrite=True, progress=lambda message: print(message, flush=True))
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--archive', type=Path, default=Path('dist/Viper-Export-Demo.zip'))
+    parser.add_argument('--archive', type=Path)
+    parser.add_argument('--format', choices=['exe', 'python'], default='exe')
     parser.add_argument('--build', action='store_true')
     args = parser.parse_args()
-    archive_path = args.archive.resolve()
+    default_archive = 'dist/Viper-Export-Demo-Python.zip' if args.format == 'python' else 'dist/Viper-Export-Demo.zip'
+    archive_path = (args.archive or Path(default_archive)).resolve()
     if args.build:
-        make_demo(archive_path)
+        make_demo(archive_path, args.format)
     with tempfile.TemporaryDirectory(prefix='viper-export-test-') as directory:
         temporary = Path(directory)
         moved = temporary / 'Recipient folder with spaces'
         with zipfile.ZipFile(archive_path) as archive:
             archive.extractall(moved)
-        executable, = moved.rglob('*.exe')
-        project_path = executable.parent / '_internal' / 'project.json'
+        candidates = moved.rglob('app.py' if args.format == 'python' else '*.exe')
+        executable, = (path for path in candidates if args.format != 'python' or (path.parent / 'project.json').is_file())
+        project_path = executable.parent / ('project.json' if args.format == 'python' else '_internal/project.json')
         snapshot = json.loads(project_path.read_text())['project']
         elsewhere = temporary / 'Unrelated working directory'
         elsewhere.mkdir()
@@ -138,7 +141,8 @@ def main():
         environment['PATH'] = str(Path(environment.get('SYSTEMROOT') or environment['SystemRoot']) / 'System32')
         environment['WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'] = f'--remote-debugging-port={port}'
         client = None
-        process = subprocess.Popen([str(executable)], cwd=elsewhere, env=environment,
+        command = [sys.executable, str(executable)] if args.format == 'python' else [str(executable)]
+        process = subprocess.Popen(command, cwd=elsewhere, env=environment,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
         try:
             target = None
@@ -172,8 +176,9 @@ def main():
             assert result['controls'] == 4 and result['menus'] is False, result
             assert result['label'] == 'Packaged 1/2' and result['panel'] == 'Label change handler ran', result
             assert result['input'] == 'Recipient typing', result
-            assert not (executable.parent / '_internal' / 'viper' / 'assets' / 'designer.html').exists()
-            print(json.dumps({'archive': str(archive_path), 'relocated': True, 'python_on_path': False,
+            runtime_root = executable.parent / ('viper' if args.format == 'python' else '_internal/viper')
+            assert not (runtime_root / 'assets' / 'designer.html').exists()
+            print(json.dumps({'archive': str(archive_path), 'format': args.format, 'relocated': True, 'python_on_path': False,
                               'renderer': 'WebView2', 'startup': result['form'], 'checks': 'passed'}))
         finally:
             if client:

@@ -281,20 +281,43 @@ Linux standalone bundling remain future milestones.
 
 ## Build an application to share
 
-On Windows, install the optional build tools in the Python environment running
-Viper (once):
-
-```powershell
-python -m pip install -e ".[build]"
-```
-
 Choose the project's **Startup window** in Inspector, then use **File > Build /
-Package** or **Run > Build / Package** and select a ZIP destination. The designer
+Package** or **Run > Build / Package**. Choose **Python project (.zip)** or
+**Windows executable (.zip)**, then select a ZIP destination. Cancelling format
+selection does not open a file dialog or start a build. The designer
 captures the current project, including unsaved edits, all windows and saved Python
 event source. Builds run in the background; the status bar shows progress and
 then **Build complete**. Editing afterward does not change the captured build. Build
 is disabled during Preview and while another build is running. A failed build
 preserves the previous ZIP. Cancelling the destination dialog changes nothing.
+
+**Python project** includes `app.py`, `project.json`, `requirements.txt`, a local
+`viper/` package containing the same Python runtime code and native adapters, and
+the runtime frontend assets. Neither Viper nor PyInstaller needs to be installed
+on the recipient's machine. Python 3.11 or later and the listed runtime dependencies
+are required. Extract the ZIP and, in its application folder, run:
+
+```powershell
+py -m pip install -r requirements.txt
+py app.py
+```
+
+Dependency installation is needed once per environment. Keep the files and
+`viper/` folder together; `app.py` also works when launched by absolute path from
+another working directory. Saved event source remains verbatim in `project.json`.
+Static third-party imports are mapped to installed distributions and pinned in
+`requirements.txt`; standard-library imports need no additional requirements.
+Unpackaged local helper modules must be packaged before they can be exported.
+Python export does not require the executable build tools. On Linux, install
+GTK 4, WebKitGTK 6.0 and PyGObject through your distribution, then use `python3
+app.py`; Linux native behavior remains unverified.
+
+**Windows executable** keeps the existing compiled folder export. Install the
+optional build tools in the Python environment running Viper (once):
+
+```powershell
+python -m pip install -e ".[build]"
+```
 
 Send the ZIP to another Windows user. They extract the whole archive and open
 the `.exe` inside. Keep its `_internal` folder beside it. The package contains
@@ -308,7 +331,7 @@ The recipient needs Microsoft Edge **WebView2 Runtime** and **.NET Framework 4.8
 The WebView2 engine is a system prerequisite rather than bundled in this ZIP;
 download it from [Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
 Build on Windows for a compatible Windows architecture; cross-compilation and
-Linux packages are not implemented. The generated README includes launch and
+Linux executable packages are not implemented. The generated README includes launch and
 prerequisite instructions. Startup errors report through a native message box
 and write details to `viper-application-error.log` in the system temporary folder.
 
@@ -316,13 +339,14 @@ The same exporter is available from the command line:
 
 ```powershell
 python -m viper.build project.json --output dist/MyApp.zip
+python -m viper.build project.json --format python --output dist/MyApp_python.zip
 ```
 
 Use `--overwrite` to replace an existing ZIP. The `viper-build` console command
 is equivalent. The exporter checks mapped handler syntax and collects static
 imports from saved source without executing it. Those modules must be installed
-in the build environment. For imports computed dynamically, add
-`--hidden-import module_name`; additional project-specific data files and external
+in the export environment. Executable export is the CLI default. For imports computed dynamically, add
+`--hidden-import module_name` (Python export also lists their distributions); additional project-specific data files and external
 handler registrations are not automatically exported. Events whose mapped source
 is missing, empty or whitespace-only are inactive and do not block a build, just
 as in Preview and Run. Source and mappings are preserved. Nonempty mapped code
@@ -350,14 +374,15 @@ python tests/windows_smoke.py
 python tests/windows_smoke.py --runtime
 python tests/windows_smoke.py --runtime --secondary
 python tests/windows_export_smoke.py --build
+python tests/windows_export_smoke.py --format python --build
 ```
 
-Eighty-five automated Python tests passed, plus ten deterministic hard-layout
+Ninety automated Python tests passed, plus ten deterministic hard-layout
 checks in WebView2, 50 menu/action assertions, 29 form/event tab checks,
 45 docking/workspace checks, 51 hierarchy checks, 21 Preview control binding checks,
 17 control checks in each main/secondary runtime, 21 Designer/Preview depth checks,
 12 depth checks in each main/secondary runtime, seven property-change checks in
-each Preview/main/secondary runtime, ten build-command checks and native designer/runtime anchor
+each Preview/main/secondary runtime, fifteen build-command checks and native designer/runtime anchor
 integration checks. Shell resizing and stacking isolation are checked at narrow
 and full-size window dimensions.
 Windows WebView2 startup, the bridge, real-control
@@ -375,4 +400,7 @@ with a bundled import plus a label change handler. The smoke enables a local
 WebView2 debug port only in its child environment; exported apps contain no test
 mode. A fresh Windows VM without Python has not been tested. Native file-dialog
 interaction still needs manual verification.
-Nested containers, theme editing, undo/redo, installers and Linux export are deferred.
+Python export passed both an isolated-interpreter launcher check using only its
+bundled Viper package and a relocated native Windows `app.py` test with real
+controls, saved imports and change handlers. Executable export remains available.
+Nested containers, theme editing, undo/redo, installers and Linux executable export are deferred.

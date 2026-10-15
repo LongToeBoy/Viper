@@ -94,6 +94,30 @@ class LinuxHost(NativeHost):
     def set_title(self, title):
         self._on_ui(lambda: self._window.set_title(title))
 
+    def export_dialog(self, name, callback):
+        def choose():
+            Gtk = self._Gtk
+            dialog = Gtk.FileChooserNative.new('Export application ZIP', self._window,
+                                               Gtk.FileChooserAction.SAVE, 'Export', 'Cancel')
+            file_filter = Gtk.FileFilter()
+            file_filter.set_name('Application ZIP (*.zip)')
+            file_filter.add_pattern('*.zip')
+            dialog.add_filter(file_filter)
+            dialog.set_current_name(name)
+            self._dialog = dialog
+
+            def response(chooser, response_id):
+                selected = chooser.get_file() if response_id == Gtk.ResponseType.ACCEPT else None
+                path = selected.get_path() if selected else None
+                chooser.destroy()
+                self._dialog = None
+                callback(Path(path) if path else None)
+
+            dialog.connect('response', response)
+            dialog.show()
+
+        self._on_ui(choose)
+
     def resize(self, width, height):
         self._on_ui(lambda: self._window.set_default_size(width, height))
 

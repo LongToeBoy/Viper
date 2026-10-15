@@ -359,14 +359,30 @@ function runProject() {
   const windowId = projectSelected || !project ? projectRoot.startup_window_id : project.form_id;
   sync(); return enqueue(async () => { await viperHost.request('run', {window_id: windowId}); status.textContent = 'Application process started'; });
 }
-function buildProject() {
+const exportDialog = document.getElementById('export-options');
+const exportFormat = document.getElementById('export-format');
+function chooseExport() {
+  if (!building && !exportDialog.open) exportDialog.showModal();
+}
+exportFormat.onchange = () => {
+  document.getElementById('export-format-help').textContent = exportFormat.value === 'python' ?
+    'Includes app.py and requirements.txt. Install the dependencies once, then run py app.py. No Viper installation needed.' :
+    'Includes Python and the application runtime. Extract the ZIP and run the .exe. Requires Windows and WebView2.';
+};
+document.getElementById('cancel-export').onclick = () => exportDialog.close();
+document.getElementById('export-form').onsubmit = event => {
+  event.preventDefault();
+  const format = exportFormat.value;
+  exportDialog.close(); buildProject(format);
+};
+function buildProject(format = 'exe') {
   if (building) return buildTask;
   building = true; actions.refresh();
   status.textContent = 'Preparing application package…';
   sync();
   buildTask = (async () => {
     try {
-      const result = await enqueue(() => viperHost.request('build'));
+      const result = await enqueue(() => viperHost.request('build', {format}));
       if (!result) return;
       if (result.cancelled) { status.textContent = 'Build cancelled'; return; }
       for (;;) {
@@ -414,7 +430,7 @@ const menus = createViperDesignerChrome(actions, {
   setStartupWindow, rename() { showProperties(); document.activeElement.select(); },
   events: () => openElementEvents(),
   toggleTool: tool => panels.toggle(tool), resetWorkspace: () => panels.reset(),
-  preview: togglePreview, run: runProject, build: buildProject, preferencesChanged: applyPreferences,
+  preview: togglePreview, run: runProject, build: chooseExport, preferencesChanged: applyPreferences,
   windowProperties() { selectWindow(); showProperties(); }, properties: showProperties,
   connect() {
     if (!linkEditor.connecting) { preferences.set('showAnchors', true); applyPreferences(); }

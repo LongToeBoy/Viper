@@ -1,4 +1,7 @@
 import json
+from importlib import metadata
+import subprocess
+import sys
 import threading
 import zipfile
 from pathlib import Path
@@ -6,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from viper.app import ViperApp
-from viper.build import application_name, export_project, validate_project
+from viper.build import application_name, export_project, python_requirements, validate_project
 from viper.models import Project, WindowDefinition
 
 
@@ -197,3 +200,86 @@ def test_packaged_startup_errors_are_reported_without_a_console(monkeypatch, tmp
     assert launch(tmp_path / 'missing.json') == 1
     assert errors and 'missing.json' in errors[0][1]
     assert 'FileNotFoundError' in (tmp_path / 'viper-application-error.log').read_text()
+
+
+def test_python_archive_is_self_contained_and_runs_launcher_from_another_directory(monkeypatch, tmp_path):
+    import viper.hosts
+    monkeypatch.setattr(viper.hosts, 'create_builder', lambda: pytest.fail('Python export must not load PyInstaller'))
+    project = buildable()
+    second = WindowDefinition.from_dict({**project.get_window().to_dict(), 'form_id': 'second'})
+    project.windows.append(second)
+    project.startup_window_id = 'second'
+    project.event_code['unused'] = 'def incomplete(\n'
+    original = project.to_dict()
+    destination = export_project(project, tmp_path / 'python.zip', format='python')
+    with zipfile.ZipFile(destination) as archive:
+        assert not any(name.endswith(('.exe', '.pyc')) for name in archive.namelist())
+        assert not any(name.endswith('designer.html') for name in archive.namelist())
+        archive.extractall(tmp_path / 'Moved project with spaces')
+    root = tmp_path / 'Moved project with spaces' / 'Demo-Project'
+    assert json.loads((root / 'project.json').read_text())['project'] == original
+    assert 'pywebview' in (root / 'requirements.txt').read_text()
+    assert 'PyInstaller' not in (root / 'requirements.txt').read_text()
+    assert (root / 'viper' / 'runtime.py').read_bytes() == (Path(__file__).parents[1] / 'viper' / 'runtime.py').read_bytes()
+    assert (root / 'viper' / 'assets' / 'components.js').is_file()
+    script = ('import sys, runpy\nfrom pathlib import Path\n'
+              f'root = Path({str(root)!r})\nsys.path.insert(0, str(root))\n'
+              'import viper\nfrom viper.runtime import Runtime\n'
+              'assert Path(viper.__file__).parent == root / "viper"\n'
+              'def verify(runtime):\n'
+              '    assert runtime.window_id == "second"\n'
+              '    replies = []\n'
+              '    runtime.receive({"id": 1, "command": "event", "payload": {"component_id": runtime.form.components[0].id, "event": "click"}}, replies.append)\n'
+              '    assert replies[0]["result"]["updates"][0]["properties"]["text"] == "1/2"\n'
+              '    print("bundled-runtime-ok")\n'
+              'Runtime.launch = verify\nrunpy.run_path(str(root / "app.py"), run_name="__main__")\n')
+    result = subprocess.run([sys.executable, '-I', '-c', script], cwd=tmp_path, capture_output=True, text=True)
+    assert result.returncode == 0 and result.stdout.strip() == 'bundled-runtime-ok', result.stderr
+    assert project.to_dict() == original
+
+
+def test_python_requirements_include_static_third_party_imports():
+    requirements = python_requirements(['fractions', 'pathlib', 'packaging.version', 'webview', 'viper.models'])
+    assert f'packaging=={metadata.version("packaging")}' in requirements
+    assert requirements.count('pywebview') == 1
+    assert 'fractions==' not in requirements and 'viper==' not in requirements
+
+
+def test_python_export_rejects_untracked_local_dependencies(monkeypatch):
+    monkeypatch.setattr('viper.build.metadata.packages_distributions', lambda: {})
+    with pytest.raises(ValueError, match='requirements.txt'):
+        python_requirements(['local_helper'])
+
+
+def test_unknown_export_format_preserves_existing_output(tmp_path):
+    target = tmp_path / 'project.zip'
+    target.write_bytes(b'previous')
+    with pytest.raises(ValueError, match='export format'):
+        export_project(buildable(), target, format='unknown', overwrite=True)
+    assert target.read_bytes() == b'previous'
+
+
+def test_python_build_job_needs_no_native_builder(monkeypatch, tmp_path):
+    import viper.build
+    import viper.hosts
+    called = threading.Event()
+    received = []
+
+    def export(project, path, **kwargs):
+        received.append(kwargs['format'])
+        called.set()
+        return tmp_path / 'app_python.zip'
+
+    class Host:
+        def export_dialog(self, name, callback):
+            assert name.endswith('_python.zip')
+            callback(tmp_path / name)
+
+    monkeypatch.setattr(viper.hosts, 'create_builder', lambda: pytest.fail('Python build must not require a native packager'))
+    monkeypatch.setattr(viper.build, 'export_project', export)
+    app = ViperApp(buildable())
+    app.host = Host()
+    replies = []
+    app.bridge.receive({'id': 1, 'command': 'build', 'payload': {'format': 'python'}}, replies.append)
+    assert 'job_id' in replies[-1]['result']
+    assert called.wait(5) and received == ['python']

@@ -82,11 +82,16 @@ class Bridge:
                         raise RuntimeError('An application build is already in progress.')
                     from .build import application_name, export_project, validate_project
                     from .hosts import create_builder
+                    format = payload.get('format', 'exe')
+                    if format not in {'exe', 'python'}:
+                        raise ValueError('Choose exe or python as the export format.')
                     snapshot = Project.from_dict(self.app.project.to_dict())
                     validate_project(snapshot, registered_handlers=self.app.handlers)
-                    builder = create_builder()
-                    builder.check_available()
-                    job = {'id': uuid4().hex, 'state': 'choosing', 'message': 'Choose an application ZIP destination'}
+                    builder = None
+                    if format == 'exe':
+                        builder = create_builder()
+                        builder.check_available()
+                    job = {'id': uuid4().hex, 'format': format, 'state': 'choosing', 'message': 'Choose an application ZIP destination'}
                     self._build_job = job
 
                     def progress(message):
@@ -103,7 +108,7 @@ class Bridge:
 
                         def build():
                             try:
-                                archive = export_project(snapshot, path, builder=builder, progress=progress, overwrite=True)
+                                archive = export_project(snapshot, path, format=format, builder=builder, progress=progress, overwrite=True)
                                 with self._lock:
                                     job.update(state='complete', message='Build complete', path=str(archive))
                             except Exception as error:
@@ -114,7 +119,8 @@ class Bridge:
                         success({'job_id': job['id']})
 
                     try:
-                        self.app.host.export_dialog(application_name(snapshot.name) + '.zip', build_selected)
+                        suffix = '_python.zip' if format == 'python' else '.zip'
+                        self.app.host.export_dialog(application_name(snapshot.name) + suffix, build_selected)
                     except Exception:
                         job.update(state='failed', message='Could not open the export dialog')
                         raise

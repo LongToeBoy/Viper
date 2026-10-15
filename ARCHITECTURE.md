@@ -46,6 +46,8 @@ path or OS-specific separator. Install Viper in the launcher environment.
 Windows ZIP export now packages the existing runtime, assets and WebView2 adapter
 with PyInstaller (see the application export milestone below). Linux .desktop
 installation and standalone bundling remain delivery targets.
+Python project ZIP export also copies the same runtime and both adapters alongside
+an app.py entry point and dependency instructions, without freezing an interpreter.
 Desktop-entry absolute Exec paths belong to installation output, not portable
 project data. Avoid building a second runtime in an exporter.
 
@@ -464,3 +466,41 @@ with missing, empty and whitespace-only source, archive preservation, runtime
 no-op parity and external-registration protection. WebView2 Designer passes 29
 event-tab checks, including unassigned suggestions and direct source authoring.
 The packaged smoke fixture includes the reported empty Launch/change mapping.
+
+## Executable and Python project export choices (2026-10-15)
+
+Build / Package now opens a modal format choice: Python project or Windows
+executable, both ZIP outputs. The existing executable format remains the CLI/API
+default; `--format python` or `format='python'` selects source export. The bridge
+validates the chosen format and records it on the existing build job. Python
+exports bypass the native builder and PyInstaller availability check, while
+sharing snapshot validation, background progress, cancellation, atomic ZIP output
+and the exact Build complete message. Suggested Python ZIP names gain `_python`.
+
+Python output includes app.py, project.json, requirements.txt, all original Python
+modules in viper/ and hosts/, plus only the shared runtime frontend assets. The
+entry point calls the existing packaged.launch/Runtime with pathlib paths relative
+to itself. No separate runtime implementation, code regeneration, platform
+designer or absolute development path is introduced. Source, window definitions,
+IDs, startup choice, empty mappings and unmapped drafts remain verbatim.
+
+Requirements include pywebview with a Windows marker and installed-distribution
+versions for third-party static imports. Standard-library, bundled Viper and
+system GTK bindings are handled separately. Unknown local dependency distributions
+fail with an actionable error rather than silently producing an incomplete ZIP.
+CLI hidden imports can also add dependency distributions. Extra user data files
+remain outside automatic export. Recipients install requirements once and run
+py app.py; Python is required, Viper and PyInstaller installations are not.
+The existing host selection remains under hosts/, and the GTK adapter now supplies
+its ZIP save dialog. Linux GTK 4/WebKitGTK 6.0/PyGObject require system installation
+and native verification; no Linux execution claim is made.
+
+Verification: 90 Python tests pass, including byte-identical runtime copying,
+verbatim project/startup preservation, dependency generation, absence of frozen
+binaries, no-PyInstaller source export and format validation. An isolated Python
+process launched the relocated app.py using the bundled package, dispatched saved
+Python source and confirmed the selected startup window. Native Windows Designer
+passes fifteen export-command checks covering format choice, cancellation, both
+payloads, progress and the unchanged completion text. Relocated Python app.py and
+executable exports are exercised by windows_export_smoke.py with the same actual
+WebView2 controls and button/change handlers.

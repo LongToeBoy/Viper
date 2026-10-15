@@ -98,7 +98,7 @@ def verify():
             host._window.evaluate_js((Path(__file__).parent / 'designer_build_cases.js').read_text(encoding='utf-8'),
                                     lambda value: (build_results.append(value), build_ready.set()))
             assert build_ready.wait(30), 'Build command checks did not finish'
-            assert build_results[0].get('passed') == 10 and 'error' not in build_results[0], build_results
+            assert build_results[0].get('passed') == 15 and 'error' not in build_results[0], build_results
             for width, height in [(560, 430), (240, 260), (1280, 820)]:
                 host.resize(width, height)
                 threading.Event().wait(.2)

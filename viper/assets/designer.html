@@ -7,6 +7,20 @@
     <link rel="stylesheet" href="designer.css" />
   </head>
   <body>
+    <dialog id="export-options" class="export-options" aria-labelledby="export-heading">
+      <form id="export-form">
+        <h3 id="export-heading">Export application</h3>
+        <label>Format <select id="export-format">
+          <option value="python">Python project (.zip)</option>
+          <option value="exe">Windows executable (.zip)</option>
+        </select></label>
+        <p id="export-format-help" class="property-help">Includes app.py and requirements.txt. Install the dependencies once, then run py app.py. No Viper installation needed.</p>
+        <div class="dialog-actions">
+          <button type="button" id="cancel-export" class="tool-button">Cancel</button>
+          <button type="submit" class="tool-button">Export</button>
+        </div>
+      </form>
+    </dialog>
     <div class="application-shell">
       <header id="application-chrome" class="application-chrome" aria-label="Application commands">
         <nav class="menu-bar" role="menubar" aria-label="Main menu"></nav>

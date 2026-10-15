@@ -2,11 +2,20 @@
   const original = clone(projectRoot), originalRequest = viperHost.request;
   let passed = 0;
   const assert = (condition, message) => { if (!condition) throw new Error(message); passed++; };
+  const start = format => {
+    actions.execute('build'); exportFormat.value = format; exportFormat.dispatchEvent(new Event('change'));
+    document.getElementById('export-form').requestSubmit();
+  };
   try {
     if (preview) togglePreview();
     assert(actions.state('build').enabled, 'Build is available for a project with windows');
     assert(menus.definitions.filter(menu => menu.items.includes('build')).length === 2,
       'File and Run share the same build command');
+    actions.execute('build');
+    assert(exportDialog.open && [...exportFormat.options].map(option => option.value).join(',') === 'python,exe',
+      'Build opens a choice between Python project and Windows executable');
+    document.getElementById('cancel-export').click();
+    assert(!exportDialog.open && !building, 'Cancelling export format selection does not start a build');
     let resolveStatus, requests = [];
     viperHost.request = async (command, payload) => {
       requests.push({command, payload});
@@ -14,19 +23,26 @@
       if (command === 'build-status') return new Promise(resolve => { resolveStatus = resolve; });
       return {};
     };
-    actions.execute('build');
+    start('python');
+    assert(document.getElementById('export-format-help').textContent.includes('py app.py'), 'Python export explains how to launch the project');
     for (let i = 0; i < 20 && !resolveStatus; i++) await new Promise(resolve => setTimeout(resolve, 0));
     assert(building && !actions.state('build').enabled && !actions.execute('build'), 'A second build cannot start while one is in progress');
     assert(requests.slice(0, 2).map(request => request.command).join(',') === 'update,build', 'Build synchronizes the project before opening the destination picker');
+    assert(requests[1].payload.format === 'python', 'The chosen Python export format reaches the bridge');
     assert(requests[0].payload.project.startup_window_id === original.startup_window_id, 'Build preserves the configured startup window');
     resolveStatus({state: 'complete', path: 'Shared App.zip'}); await buildTask;
     assert(!building && actions.state('build').enabled && status.textContent === 'Build complete', 'Successful builds show Build complete and restore the action');
-    viperHost.request = async command => command === 'build' ? {cancelled: true} : {};
-    actions.execute('build'); await buildTask;
+    let cancelledFormat;
+    viperHost.request = async (command, payload) => {
+      if (command === 'build') { cancelledFormat = payload.format; return {cancelled: true}; }
+      return {};
+    };
+    start('exe'); await buildTask;
+    assert(cancelledFormat === 'exe', 'The existing executable export format reaches the bridge');
     assert(status.textContent === 'Build cancelled' && !building, 'Cancelling the destination picker leaves the designer usable');
     viperHost.request = async command => command === 'build' ? {job_id: 'failed'} :
       command === 'build-status' ? {state: 'failed', message: 'Example build failure'} : {};
-    actions.execute('build'); await buildTask;
+    start('exe'); await buildTask;
     assert(status.textContent.includes('Example build failure') && actions.state('build').enabled, 'Failed builds report the error and allow retry');
     preview = true; actions.refresh();
     assert(!actions.state('build').enabled, 'Build uses authored definitions outside Preview');
@@ -35,5 +51,5 @@
     assert(!actions.state('build').enabled, 'An empty project cannot be built');
     return {passed};
   } catch (error) { return {passed, error: error.stack || error.message}; }
-  finally { viperHost.request = originalRequest; replaceProject(original); await sync(); }
+  finally { if (exportDialog.open) exportDialog.close(); viperHost.request = originalRequest; replaceProject(original); await sync(); }
 })()
